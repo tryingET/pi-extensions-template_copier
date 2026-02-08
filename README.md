@@ -20,6 +20,21 @@ bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [
 
 The wrapper is intentionally thin: argument validation + `copier copy` invocation.
 
+For reproducible generation, optionally pin template ref:
+
+```bash
+PI_TEMPLATE_REF=v0.1.0 \
+  bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+```
+
+The wrapper refuses to generate from a dirty template repo by default.
+Override only for local experiments:
+
+```bash
+ALLOW_DIRTY_TEMPLATE=1 \
+  bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+```
+
 ## What is templated
 
 Template files live under [copier-template/](copier-template/), configured by [copier.yml](copier.yml).
@@ -47,6 +62,15 @@ Generated repos include `.copier-answers.yml` and should commit it.
 - Use `copier recopy --trust` when update is unavailable (for example local non-VCS source) or cannot reconcile cleanly.
 - After recopy, re-apply local deltas intentionally.
 - After update/recopy, run `npm run check`.
+
+## Template release checklist (maintainers)
+
+1. Ensure template repo is clean (`git status`).
+2. Regenerate canonical smoke repo and run checks.
+3. Commit template changes.
+4. Create annotated tag (`git tag -a vX.Y.Z -m "Template release vX.Y.Z"`).
+5. Push commits + tags to remote (`git push origin main --tags`).
+6. Prefer `PI_TEMPLATE_REF=vX.Y.Z` in automation for deterministic generation.
 
 ## Notes
 
