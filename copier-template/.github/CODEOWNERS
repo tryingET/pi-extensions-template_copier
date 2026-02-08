@@ -3,7 +3,10 @@
 * @your-github-handle
 
 /.github/workflows/* @your-github-handle
+/.github/ISSUE_TEMPLATE/* @your-github-handle
+/.github/VOUCHED.td @your-github-handle
 /extensions/* @your-github-handle
 /package.json @your-github-handle
+/SECURITY.md @your-github-handle
 /.release-please-config.json @your-github-handle
 /.release-please-manifest.json @your-github-handle

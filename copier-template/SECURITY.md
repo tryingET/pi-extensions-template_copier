@@ -1,28 +1,34 @@
 ---
-summary: "Security reporting and hardening expectations."
+summary: "Security reporting process and release hardening baseline."
 read_when:
-  - "Reporting vulnerabilities or reviewing risk controls."
+  - "Reporting a vulnerability."
+  - "Reviewing release and workflow security controls."
 system4d:
-  container: "Security policy for package maintainers and contributors."
-  compass: "Prefer least privilege and explicit review before release."
-  engine: "Report -> triage -> patch -> verify -> disclose."
-  fog: "Third-party dependency risks change over time."
+  container: "Security policy for maintainers and contributors."
+  compass: "Private reporting, least privilege, auditable releases."
+  engine: "Report privately -> triage -> patch -> verify -> disclose."
+  fog: "Dependency and ecosystem risk shifts over time."
 ---
 
 # Security Policy
 
 ## Supported versions
 
-Security fixes are applied to the latest main branch.
+Security fixes target the latest release and `main` branch.
 
 ## Reporting a vulnerability
 
-1. Open a private security report with maintainers.
-2. Include reproduction steps and impact.
-3. Avoid public disclosure until a fix is available.
+Use **private reporting**.
 
-## Baseline safeguards
+1. Preferred: GitHub Security tab -> **Report a vulnerability**.
+2. If private reporting is unavailable, open a minimal issue titled
+   `Security contact request` without exploit details and request a private channel.
+3. Include impact, affected versions, and reproduction steps.
+4. Avoid public disclosure until maintainers confirm a fix/release plan.
 
-- Run `npm run check` before commits.
-- Review changes to scripts, hooks, and extension entrypoints.
-- Keep dependencies minimal.
+## Release and supply-chain baseline
+
+- Release flow uses release-please PRs before tags/releases.
+- Publish flow uses npm Trusted Publishing (OIDC) and `npm publish --provenance`.
+- Workflow permissions default to read and elevate per job only.
+- Third-party actions must stay explicit; high-risk paths should be SHA pinned.

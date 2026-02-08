@@ -8,14 +8,25 @@ required_files=(
   "README.md"
   "CHANGELOG.md"
   "SECURITY.md"
+  "CODE_OF_CONDUCT.md"
+  "SUPPORT.md"
+  "CONTRIBUTING.md"
   "AGENTS.md"
   ".copier-answers.yml"
   "prek.toml"
+  ".github/CODEOWNERS"
+  ".github/dependabot.yml"
+  ".github/pull_request_template.md"
+  ".github/VOUCHED.td"
+  ".github/ISSUE_TEMPLATE/bug-report.yml"
+  ".github/ISSUE_TEMPLATE/feature-request.yml"
+  ".github/ISSUE_TEMPLATE/docs.yml"
+  ".github/ISSUE_TEMPLATE/config.yml"
   ".github/workflows/ci.yml"
   ".github/workflows/release-please.yml"
   ".github/workflows/publish.yml"
-  ".github/dependabot.yml"
-  ".github/CODEOWNERS"
+  ".github/workflows/vouch-check-pr.yml"
+  ".github/workflows/vouch-manage.yml"
   ".release-please-config.json"
   ".release-please-manifest.json"
   "docs/org/operating_model.md"
@@ -47,6 +58,7 @@ required_files=(
 required_dirs=(
   ".github"
   ".github/workflows"
+  ".github/ISSUE_TEMPLATE"
   "docs/org"
   "docs/dev/plans"
   "examples"
@@ -107,6 +119,65 @@ for copier_key in "_src_path:" "repo_name:" "command_name:"; do
     ((errors+=1))
   fi
 done
+
+placeholder_pattern='\{username\}|\{repo\}|\{discordInvite\}|\{@twitter\}'
+placeholder_hits="$(grep -R -nE "$placeholder_pattern" .github || true)"
+if [[ -n "$placeholder_hits" ]]; then
+  echo "Unresolved placeholders found under .github:" >&2
+  echo "$placeholder_hits" >&2
+  ((errors+=1))
+fi
+
+vouch_ref="5713ce1baedf75e2f830afa3dac813a9c48bff12"
+if ! grep -q "mitchellh/vouch/action/check-pr@${vouch_ref}" ".github/workflows/vouch-check-pr.yml"; then
+  echo "vouch-check-pr workflow must pin mitchellh/vouch/action/check-pr to ${vouch_ref}" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "mitchellh/vouch/action/manage-by-issue@${vouch_ref}" ".github/workflows/vouch-manage.yml"; then
+  echo "vouch-manage workflow must pin mitchellh/vouch/action/manage-by-issue to ${vouch_ref}" >&2
+  ((errors+=1))
+fi
+
+if grep -n "@main" .github/workflows/vouch-*.yml >/dev/null 2>&1; then
+  echo "vouch workflows must not use @main refs" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "pull_request_target" ".github/workflows/vouch-check-pr.yml"; then
+  echo "vouch-check-pr workflow must trigger on pull_request_target" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "require-vouch" ".github/workflows/vouch-check-pr.yml"; then
+  echo "vouch-check-pr workflow must set require-vouch" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "auto-close" ".github/workflows/vouch-check-pr.yml"; then
+  echo "vouch-check-pr workflow must set auto-close" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "issue_comment" ".github/workflows/vouch-manage.yml"; then
+  echo "vouch-manage workflow must trigger on issue_comment" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "concurrency:" ".github/workflows/vouch-manage.yml" || ! grep -q "group: vouch-manage" ".github/workflows/vouch-manage.yml"; then
+  echo "vouch-manage workflow must define serialized concurrency" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "vouched-file: .github/VOUCHED.td" ".github/workflows/vouch-manage.yml"; then
+  echo "vouch-manage workflow must target .github/VOUCHED.td" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "^github:maintainer-1" ".github/VOUCHED.td" || ! grep -q "^github:maintainer-2" ".github/VOUCHED.td"; then
+  echo ".github/VOUCHED.td must include maintainer bootstrap placeholders" >&2
+  ((errors+=1))
+fi
 
 if command -v node >/dev/null 2>&1; then
   if ! node - <<'NODE'

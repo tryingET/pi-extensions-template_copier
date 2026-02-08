@@ -57,6 +57,15 @@ Generated scaffold includes:
   - `.github/workflows/publish.yml`
   - `.release-please-config.json`, `.release-please-manifest.json`
   - `.github/dependabot.yml`, `.github/CODEOWNERS`
+  - `SECURITY.md`
+- community intake baseline:
+  - `.github/ISSUE_TEMPLATE/{bug-report,feature-request,docs,config}.yml`
+  - `.github/pull_request_template.md`
+  - `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `CONTRIBUTING.md`
+- vouch trust gate baseline:
+  - `.github/VOUCHED.td`
+  - `.github/workflows/vouch-check-pr.yml`
+  - `.github/workflows/vouch-manage.yml`
 
 ## Copier update policy
 
