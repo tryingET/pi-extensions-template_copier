@@ -1,0 +1,38 @@
+_min_copier_version: "9.0.0"
+_subdirectory: "copier-template"
+_templates_suffix: ".jinja"
+_answers_file: ".copier-answers.yml"
+
+repo_name:
+  type: str
+  help: "Repository name (directory and package name)"
+
+command_name:
+  type: str
+  default: "{{ repo_name }}"
+  help: "Primary extension command name"
+
+_tasks:
+  - "chmod +x scripts/sync-to-live.sh scripts/install-hooks.sh scripts/init-project-docs.sh scripts/docs-list.sh scripts/validate-structure.sh .githooks/pre-commit"
+  - "git init -q"
+  - "bash ./scripts/install-hooks.sh"
+
+_message_after_copy: |
+  Scaffold created at {{ _copier_conf.dst_path }}
+
+  Next:
+    cd {{ _copier_conf.dst_path }}
+    npm run docs:list
+    npm run check
+
+  Startup interview flow:
+    - Open the repo in pi
+    - Send your startup intent as first non-command message
+    - Router proposes: /init-project-docs "<intent>"
+
+  Copier policy:
+    - Commit .copier-answers.yml
+    - Do not edit it manually
+    - Run update/recopy from a clean destination repo (commit or stash pending changes first)
+    - Use `copier update --trust` when `.copier-answers.yml` includes `_commit` and update is supported
+    - Use `copier recopy --trust` when update is unavailable (e.g. local non-VCS source) or cannot reconcile cleanly

@@ -1,0 +1,53 @@
+# pi extension copier template
+
+Copier-first template for creating production-ready pi extension repositories.
+
+## Preferred usage (Copier directly)
+
+```bash
+copier copy --trust ~/programming/pi-extensions/template ~/programming/pi-extensions/<repo-name> \
+  -d repo_name=<repo-name> \
+  -d command_name=<command-name>
+```
+
+## Compatibility wrapper
+
+If you want the old command shape, use:
+
+```bash
+bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+```
+
+The wrapper is intentionally thin: argument validation + `copier copy` invocation.
+
+## What is templated
+
+Template files live under [copier-template/](copier-template/), configured by [copier.yml](copier.yml).
+
+Generated scaffold includes:
+
+- package extension entrypoint in `extensions/<command-name>.ts`
+- governance docs + `system4d` frontmatter
+- hook setup with `prek.toml`, `.githooks/pre-commit`, and fallback validation
+- interview-first startup flow:
+  - `.pi/extensions/startup-intake-router.ts`
+  - `.pi/prompts/init-project-docs.md`
+  - `docs/org/project-docs-intake.questions.json`
+- docs discovery wrapper:
+  - `scripts/docs-list.sh`
+  - npm scripts: `docs:list`, `docs:list:workspace`, `docs:list:json`
+
+## Copier update policy
+
+Generated repos include `.copier-answers.yml` and should commit it.
+
+- Run from a clean destination repo (commit or stash pending changes first).
+- Use `copier update --trust` when `.copier-answers.yml` includes `_commit` and update is supported.
+- Use `copier recopy --trust` when update is unavailable (for example local non-VCS source) or cannot reconcile cleanly.
+- After recopy, re-apply local deltas intentionally.
+- After update/recopy, run `npm run check`.
+
+## Notes
+
+- `copier` must be installed (`pipx install copier`, `uv tool install copier`, or `pip install copier`).
+- Post-copy tasks in `copier.yml` set executable bits, run `git init`, and configure git hook path.

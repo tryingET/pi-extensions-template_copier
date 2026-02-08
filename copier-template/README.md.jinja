@@ -1,0 +1,124 @@
+---
+summary: "Overview and quickstart for {{ repo_name }}."
+read_when:
+  - "Starting work in this repository."
+system4d:
+  container: "Repository scaffold for a pi extension package."
+  compass: "Ship small, safe, testable extension iterations."
+  engine: "Plan -> implement -> verify with docs and hooks in sync."
+  fog: "Unknown runtime integration edge cases until first live sync."
+---
+
+# {{ repo_name }}
+
+Production-ready starter scaffold for a pi extension package.
+
+## Quickstart
+
+1. Install dependencies (if you add any):
+
+   ```bash
+   npm install
+   ```
+
+2. Test with pi:
+
+   ```bash
+   pi -e ./extensions/{{ command_name }}.ts
+   ```
+
+3. Install package into pi:
+
+   ```bash
+   pi install /absolute/path/to/{{ repo_name }}
+   ```
+
+## Repository checks
+
+Run:
+
+```bash
+npm run check
+```
+
+This executes [scripts/validate-structure.sh](scripts/validate-structure.sh).
+
+## Docs discovery
+
+Run:
+
+```bash
+npm run docs:list
+npm run docs:list:workspace
+npm run docs:list:json
+```
+
+Wrapper script: [scripts/docs-list.sh](scripts/docs-list.sh)
+
+Resolution order:
+1. `DOCS_LIST_SCRIPT`
+2. `./scripts/docs-list.mjs` (if vendored)
+3. `~/programming/agent-scripts/scripts/docs-list.mjs`
+
+## Copier lifecycle policy
+
+- Keep `.copier-answers.yml` committed.
+- Do not edit `.copier-answers.yml` manually.
+- Run from a clean destination repo (commit or stash pending changes first).
+- Use `copier update --trust` when `.copier-answers.yml` includes `_commit` and update is supported.
+- Use `copier recopy --trust` when update is unavailable (for example local non-VCS source) or cannot reconcile cleanly.
+- After recopy, re-apply local deltas intentionally and run `npm run check`.
+
+## Hook behavior
+
+- Git uses `.githooks/pre-commit` (configured by [scripts/install-hooks.sh](scripts/install-hooks.sh)).
+- If `prek` is available, the hook runs `prek` using [prek.toml](prek.toml).
+- If `prek` is not available, the hook falls back to `scripts/validate-structure.sh`.
+
+Install options for `prek`:
+
+```bash
+npm add -D @j178/prek
+# or
+npm install -g @j178/prek
+```
+
+## Startup interview flow (project-local)
+
+- [`.pi/extensions/startup-intake-router.ts`](.pi/extensions/startup-intake-router.ts) watches the first non-command message in a session.
+- It converts your startup intent into a prefilled command:
+  - `/init-project-docs "<your intent>"`
+- [`.pi/prompts/init-project-docs.md`](.pi/prompts/init-project-docs.md) then drives the `interview` tool using [docs/org/project-docs-intake.questions.json](docs/org/project-docs-intake.questions.json).
+
+Utility commands:
+
+- `/startup-intake-router-status`
+- `/startup-intake-router-reset`
+
+## Live sync helper
+
+Use [scripts/sync-to-live.sh](scripts/sync-to-live.sh) to copy the package extension to
+`~/.pi/agent/extensions/`.
+
+Optional flags:
+
+- `--with-prompts`
+- `--with-policy`
+- `--all` (prompts + policy)
+
+After sync, run `/reload` in pi.
+
+## Docs map
+
+- [Organization operating model](docs/org/operating_model.md)
+- [Project foundation model](docs/project/foundation.md)
+- [Project vision](docs/project/vision.md)
+- [Project incentives](docs/project/incentives.md)
+- [Project resources](docs/project/resources.md)
+- [Project skills](docs/project/skills.md)
+- [Strategic goals](docs/project/strategic_goals.md)
+- [Tactical goals](docs/project/tactical_goals.md)
+- [Contributor guide](docs/dev/CONTRIBUTING.md)
+- [Extension SOP](docs/dev/EXTENSION_SOP.md)
+- [Next steps](docs/dev/next_steps.md)
+- [Status](docs/dev/status.md)
