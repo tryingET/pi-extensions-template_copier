@@ -1,12 +1,12 @@
-# Replace @your-github-handle with the real owner/team before enforcing required CODEOWNERS review.
+# Default owner for generated repositories. Update if you use a different maintainer/team.
 
-* @your-github-handle
+* @tryingET
 
-/.github/workflows/* @your-github-handle
-/.github/ISSUE_TEMPLATE/* @your-github-handle
-/.github/VOUCHED.td @your-github-handle
-/extensions/* @your-github-handle
-/package.json @your-github-handle
-/SECURITY.md @your-github-handle
-/.release-please-config.json @your-github-handle
-/.release-please-manifest.json @your-github-handle
+/.github/workflows/* @tryingET
+/.github/ISSUE_TEMPLATE/* @tryingET
+/.github/VOUCHED.td @tryingET
+/extensions/* @tryingET
+/package.json @tryingET
+/SECURITY.md @tryingET
+/.release-please-config.json @tryingET
+/.release-please-manifest.json @tryingET

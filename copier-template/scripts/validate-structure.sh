@@ -174,8 +174,13 @@ if ! grep -q "vouched-file: .github/VOUCHED.td" ".github/workflows/vouch-manage.
   ((errors+=1))
 fi
 
-if ! grep -q "^github:maintainer-1" ".github/VOUCHED.td" || ! grep -q "^github:maintainer-2" ".github/VOUCHED.td"; then
-  echo ".github/VOUCHED.td must include maintainer bootstrap placeholders" >&2
+if grep -q "@your-github-handle" ".github/CODEOWNERS"; then
+  echo ".github/CODEOWNERS must not keep @your-github-handle placeholder" >&2
+  ((errors+=1))
+fi
+
+if ! grep -Eq "^github:[A-Za-z0-9][A-Za-z0-9-]*" ".github/VOUCHED.td"; then
+  echo ".github/VOUCHED.td must include at least one github maintainer entry" >&2
   ((errors+=1))
 fi
 
