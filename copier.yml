@@ -35,4 +35,5 @@ _message_after_copy: |
     - Do not edit it manually
     - Run update/recopy from a clean destination repo (commit or stash pending changes first)
     - Use `copier update --trust` when `.copier-answers.yml` includes `_commit` and update is supported
+    - In non-interactive shells/CI, append `--defaults` to update/recopy
     - Use `copier recopy --trust` when update is unavailable (e.g. local non-VCS source) or cannot reconcile cleanly

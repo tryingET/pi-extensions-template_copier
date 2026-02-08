@@ -43,6 +43,7 @@ Generated repos include `.copier-answers.yml` and should commit it.
 
 - Run from a clean destination repo (commit or stash pending changes first).
 - Use `copier update --trust` when `.copier-answers.yml` includes `_commit` and update is supported.
+- In non-interactive shells/CI, append `--defaults` to update/recopy.
 - Use `copier recopy --trust` when update is unavailable (for example local non-VCS source) or cannot reconcile cleanly.
 - After recopy, re-apply local deltas intentionally.
 - After update/recopy, run `npm run check`.
