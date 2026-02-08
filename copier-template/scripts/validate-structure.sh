@@ -11,6 +11,13 @@ required_files=(
   "AGENTS.md"
   ".copier-answers.yml"
   "prek.toml"
+  ".github/workflows/ci.yml"
+  ".github/workflows/release-please.yml"
+  ".github/workflows/publish.yml"
+  ".github/dependabot.yml"
+  ".github/CODEOWNERS"
+  ".release-please-config.json"
+  ".release-please-manifest.json"
   "docs/org/operating_model.md"
   "docs/org/project-docs-intake.questions.json"
   "docs/project/foundation.md"
@@ -38,6 +45,8 @@ required_files=(
 )
 
 required_dirs=(
+  ".github"
+  ".github/workflows"
   "docs/org"
   "docs/dev/plans"
   "examples"
@@ -173,8 +182,28 @@ try {
   if (docsListJsonScript !== "bash ./scripts/docs-list.sh --json") {
     fail("package.json scripts.docs:list:json must be 'bash ./scripts/docs-list.sh --json'");
   }
+
+  const rpConfig = JSON.parse(fs.readFileSync(".release-please-config.json", "utf8"));
+  if (rpConfig["include-v-in-tag"] !== true) {
+    fail(".release-please-config.json must set include-v-in-tag=true");
+  }
+  if (!rpConfig.packages || !rpConfig.packages["."]) {
+    fail(".release-please-config.json must include packages['.']");
+  }
+
+  const rpManifest = JSON.parse(fs.readFileSync(".release-please-manifest.json", "utf8"));
+  if (!rpManifest["."]) {
+    fail(".release-please-manifest.json must include '.' version entry");
+  }
+  const versionPattern = /^\d+\.\d+\.\d+([-.][0-9A-Za-z.]+)?$/;
+  if (!versionPattern.test(rpManifest["."])) {
+    fail(".release-please-manifest.json '.' entry must match X.Y.Z");
+  }
+  if (rpManifest["."] !== p.version) {
+    fail(".release-please-manifest.json '.' entry must match package.json version");
+  }
 } catch (error) {
-  fail(`Failed to parse package.json: ${error.message}`);
+  fail(`Failed to validate package/release metadata: ${error.message}`);
 }
 
 process.exit(failed ? 1 : 0);

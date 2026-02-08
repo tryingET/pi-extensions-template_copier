@@ -51,6 +51,12 @@ Generated scaffold includes:
 - docs discovery wrapper:
   - `scripts/docs-list.sh`
   - npm scripts: `docs:list`, `docs:list:workspace`, `docs:list:json`
+- release + security baseline:
+  - `.github/workflows/ci.yml`
+  - `.github/workflows/release-please.yml`
+  - `.github/workflows/publish.yml`
+  - `.release-please-config.json`, `.release-please-manifest.json`
+  - `.github/dependabot.yml`, `.github/CODEOWNERS`
 
 ## Copier update policy
 

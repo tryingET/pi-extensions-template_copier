@@ -1,0 +1,9 @@
+# Replace @your-github-handle with the real owner/team before enforcing required CODEOWNERS review.
+
+* @your-github-handle
+
+/.github/workflows/* @your-github-handle
+/extensions/* @your-github-handle
+/package.json @your-github-handle
+/.release-please-config.json @your-github-handle
+/.release-please-manifest.json @your-github-handle

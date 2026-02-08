@@ -43,6 +43,27 @@ npm run check
 
 This executes [scripts/validate-structure.sh](scripts/validate-structure.sh).
 
+## Release + security baseline
+
+This scaffold defaults to **release-please** for single-package release PR + tag flow (`vX.Y.Z`) and npm trusted publishing via OIDC.
+
+Included files:
+
+- [CI workflow](.github/workflows/ci.yml)
+- [release-please workflow](.github/workflows/release-please.yml)
+- [publish workflow](.github/workflows/publish.yml)
+- [Dependabot config](.github/dependabot.yml)
+- [CODEOWNERS](.github/CODEOWNERS)
+- [release-please config](.release-please-config.json)
+- [release-please manifest](.release-please-manifest.json)
+
+Before first production release:
+
+1. Replace placeholders in [.github/CODEOWNERS](.github/CODEOWNERS).
+2. Enable branch protection on `main`.
+3. Configure npm Trusted Publishing for this repo + [publish workflow](.github/workflows/publish.yml).
+4. Merge release PR from release-please, then publish from GitHub release.
+
 ## Docs discovery
 
 Run:
