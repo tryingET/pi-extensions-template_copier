@@ -1,130 +1,117 @@
-# Next session prompt — apply template baseline to secure-package-update
+# Next session prompt — finalize Biome-first template hardening (HTN slice O1→O4)
 
-Goal: migrate `~/programming/pi-extensions/secure-package-update` onto the
-current Copier-generated baseline from this template repo, while preserving
-extension-specific behavior and release checks.
+You are working in the **template source repo**:
+`~/programming/pi-extensions/template`
 
-## Scope and intent
+This is **not** a generated repo. Keep all template changes under:
+- `copier-template/**`
+- `copier.yml`
+- root test/guardrail scripts
 
-- Target repo to migrate: `~/programming/pi-extensions/secure-package-update`
-- Template source: `~/programming/pi-extensions/template`
-- Command name to preserve: `secure-package-update`
-- Package name to preserve: `@tryinget/secure-package-update`
+Do **not** run `copier copy ... .` in this repo root.
 
-This is **not** self-applying the template source repo.
-This is applying template output to a generated extension repo.
+---
 
-## Release-first gate (before migration)
+## Mission
 
-To avoid context switching and moving targets, freeze template state first.
+Complete the first HTN execution slice for Biome hardening (solo builder + AI-heavy workflow), then verify end-to-end.
 
-1. In `template/`, run full validation loop:
-   - `bash ./scripts/template-guardrails.sh`
-   - `bash ./scripts/smoke-test-template.sh`
-   - `bash ./scripts/generated-contract-test.sh`
-   - `bash ./scripts/idempotency-test-template.sh`
-2. Commit any remaining template-side changes.
-3. Cut a new template tag (`vX.Y.Z`, likely patch bump from current state).
-4. Use that tag as pinned source for migration:
-   - `PI_TEMPLATE_REF=vX.Y.Z`
-5. If remote exists, push commits + tags before applying to target repo.
+### HTN slice to execute now
 
-## Current gap snapshot (already observed)
+- **O1** editor enforcement
+- **O2** tighten high-signal Biome rules
+- **O3** suppression governance policy
+- **O4** path override strategy (schema-valid, low-noise)
 
-`secure-package-update` is missing most baseline scaffold files now included by
-`template` (AGENTS, docs tree, issue templates, vouch workflows, release-please
-files, startup intake flow, validate-structure, docs-list wrapper, etc.).
+Keep WIP = 1 (finish each operator + validate before next).
 
-It currently has extension-specific assets we must keep:
+---
 
-- `extensions/secure-package-update.ts`
-- `scripts/release-check.sh`
-- `.github/workflows/release-check.yml`
-- `config/security-policy.json`
-- package metadata tuned for npm publish
+## Current known state (already in working tree)
 
-## Non-negotiables
+Biome baseline migration is mostly done already:
+- `quality-gate.sh` switched from ESLint detection to Biome
+- `package.json.jinja` has pinned `@biomejs/biome` and `engines.node >=22`
+- scaffold docs updated for `npm run fix` + Biome lane
+- contract and validation scripts updated
+- root `docs/release-feature-parity.md` was intentionally removed
 
-1. Preserve extension logic and command behavior.
-2. Keep release-check workflow/script unless intentionally replaced.
-3. Remove packed tarballs from repo root (`*.tgz`) and keep them out of git.
-4. End state should be Copier-managed (`.copier-answers.yml` present).
-5. Do not change template source invariants in `template/`.
+There are local unstaged changes. **Continue from current tree**; do not reset.
 
-## Migration strategy (one pass)
+---
 
-### 1) Create safety backup of custom files
+## Required tasks
 
-From `secure-package-update` save copies of:
+### 1) O1 — Editor enforcement (template baseline)
 
-- `extensions/secure-package-update.ts`
-- `scripts/release-check.sh`
-- `.github/workflows/release-check.yml`
-- `config/security-policy.json`
-- `package.json`
-- `README.md`
+Add a template editor settings file:
+- `copier-template/.vscode/settings.json`
 
-### 2) Generate canonical scaffold in temp
+Goal:
+- Biome as default formatter for JS/TS/JSON(+JSONC)
+- format on save enabled
+- Biome code actions on save enabled where appropriate
 
-Use Copier from template source with matching names and pinned ref:
+Then update invariants/contract/docs if needed so this new baseline file is expected (only where appropriate).
 
-- `PI_TEMPLATE_REF=vX.Y.Z`
-- `repo_name=secure-package-update`
-- `command_name=secure-package-update`
+### 2) O2 — Tighten high-signal rules in `biome.jsonc`
 
-### 3) Overlay scaffold into secure repo
+In `copier-template/biome.jsonc`:
+- keep `recommended: true`
+- explicitly set high-signal rules for AI-generated code quality, at minimum:
+  - `suspicious.noExplicitAny`
+  - `style.useTemplate`
 
-- Sync generated scaffold into `secure-package-update` (exclude `.git`).
-- Keep `.copier-answers.yml` from generated scaffold.
+Pick severities intentionally (prefer `error` unless noisy).
 
-### 4) Re-apply secure-package-update customizations
+### 3) O3 — Suppression governance policy
 
-Re-introduce extension-specific artifacts, then merge with scaffold defaults:
+Update contributor docs so suppressions are controlled:
+- every `biome-ignore` requires a short rationale
+- include issue/todo reference pattern when not immediately removable
 
-- restore `extensions/secure-package-update.ts`
-- keep `scripts/release-check.sh`
-- keep `.github/workflows/release-check.yml`
-- preserve npm publish metadata in `package.json`
-- preserve strict `files` whitelist for published artifacts
+Touch at least:
+- `copier-template/docs/dev/CONTRIBUTING.md`
+- `copier-template/CONTRIBUTING.md` (or link to canonical policy)
 
-### 5) Policy path alignment decision
+### 4) O4 — Path overrides strategy
 
-Decide explicitly one of:
+Implement Biome path handling with schema-valid config:
+- reduce false positives/noise for generated/artifact paths
+- avoid broad blind ignores
+- prefer precise overrides or includes, consistent with template intent
 
-A) keep `config/security-policy.json` as extension-specific path, or
-B) migrate to scaffold path `policy/security-policy.json` and update
-   extension/scripts/docs accordingly.
+Important: verify with current pinned Biome schema (no unknown keys).
 
-Document whichever choice is made.
+---
 
-### 6) Clean up artifacts
+## Keep these outcomes intact
 
-- remove `*.tgz` package artifacts from repo root
-- ensure `.gitignore` covers local pack outputs
+- `docs/release-feature-parity.md` remains deleted
+- no stale references to that doc in root README
+- template still passes guardrails + smoke + contract + idempotency
 
-## Validation (must run and report)
+---
 
-From `secure-package-update`:
+## Validation loop (must run and report)
+
+Run in this repo:
 
 ```bash
-npm run check
-npm run docs:list || true
-npm run release:check:quick
-echo "/secure-update --help" | pi -e ./extensions/secure-package-update.ts -p
+npm run check:full
 ```
 
-If available and intended, also run full:
+If anything fails, fix and rerun until green.
 
-```bash
-npm run release:check
-```
+---
 
 ## Deliverable format
 
-Report:
+Return a concise report with:
+1. files changed/added/removed
+2. exact Biome rule decisions + rationale
+3. suppression policy text added (short quote)
+4. validation command output summary (pass/fail)
+5. follow-up suggestions (max 3)
 
-1. files added/changed/removed
-2. which custom files were preserved
-3. policy-path choice (config vs policy) and rationale
-4. validation command outputs + exit codes
-5. remaining follow-ups (if any)
+If blocked by ambiguity, ask **one** focused question only.
