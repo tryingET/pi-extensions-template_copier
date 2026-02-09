@@ -61,11 +61,16 @@ Generated scaffold includes:
 
 - package extension entrypoint in `extensions/<command-name>.ts`
 - governance docs + `system4d` frontmatter
-- hook setup with `prek.toml`, `.githooks/pre-commit`, and fallback validation
+- unified quality gate lane:
+  - `scripts/quality-gate.sh` stages: `pre-commit`, `pre-push`, `ci`
+  - hooks: `.githooks/pre-commit`, `.githooks/pre-push`
+  - npm scripts: `quality:pre-commit`, `quality:pre-push`, `quality:ci`
 - interview-first startup flow:
   - `.pi/extensions/startup-intake-router.ts`
   - `.pi/prompts/init-project-docs.md`
   - `docs/org/project-docs-intake.questions.json`
+- repo-local commit prompt:
+  - `.pi/prompts/commit.md`
 - docs discovery wrapper:
   - `scripts/docs-list.sh`
   - npm scripts: `docs:list`, `docs:list:workspace`, `docs:list:json`
@@ -90,7 +95,8 @@ Generated scaffold includes:
 Release parity reference: [docs/release-feature-parity.md](docs/release-feature-parity.md)
 
 TypeScript lane reference (for generated repos):
-`uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo`
+- `uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo`
+- pinned lane metadata: `policy/stack-lane.json`
 
 ## Template-source guardrails (this repo)
 

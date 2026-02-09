@@ -45,15 +45,19 @@ required_files=(
   "docs/tech-stack.local.md"
   "docs/dev/CONTRIBUTING.md"
   "docs/dev/EXTENSION_SOP.md"
+  "policy/stack-lane.json"
   ".pi/extensions/startup-intake-router.ts"
   ".pi/prompts/init-project-docs.md"
+  ".pi/prompts/commit.md"
   "scripts/sync-to-live.sh"
   "scripts/install-hooks.sh"
   "scripts/init-project-docs.sh"
   "scripts/docs-list.sh"
   "scripts/release-check.sh"
   "scripts/validate-structure.sh"
+  "scripts/quality-gate.sh"
   ".githooks/pre-commit"
+  ".githooks/pre-push"
   "prompts/implementation-planning.md"
   "prompts/security-review.md"
   "prompts/init-project-docs.md"
@@ -86,7 +90,9 @@ required_executables=(
   "scripts/docs-list.sh"
   "scripts/release-check.sh"
   "scripts/validate-structure.sh"
+  "scripts/quality-gate.sh"
   ".githooks/pre-commit"
+  ".githooks/pre-push"
 )
 
 errors=0
@@ -145,6 +151,21 @@ fi
 
 if ! grep -q "npm run release:check:quick" ".github/workflows/publish.yml"; then
   echo "publish workflow must run npm run release:check:quick before npm publish" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "npm run quality:ci" ".github/workflows/ci.yml"; then
+  echo "ci workflow must run npm run quality:ci" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "scripts/quality-gate.sh\" pre-commit" ".githooks/pre-commit"; then
+  echo ".githooks/pre-commit must call scripts/quality-gate.sh pre-commit" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "scripts/quality-gate.sh\" pre-push" ".githooks/pre-push"; then
+  echo ".githooks/pre-push must call scripts/quality-gate.sh pre-push" >&2
   ((errors+=1))
 fi
 
@@ -257,39 +278,25 @@ try {
     }
   }
 
-  const checkScript = p.scripts?.check;
-  if (checkScript !== "bash ./scripts/validate-structure.sh") {
-    fail("package.json scripts.check must be 'bash ./scripts/validate-structure.sh'");
-  }
+  const scriptExpectations = {
+    lint: "bash ./scripts/quality-gate.sh lint",
+    typecheck: "bash ./scripts/quality-gate.sh typecheck",
+    "quality:pre-commit": "bash ./scripts/quality-gate.sh pre-commit",
+    "quality:pre-push": "bash ./scripts/quality-gate.sh pre-push",
+    "quality:ci": "bash ./scripts/quality-gate.sh ci",
+    check: "npm run quality:ci",
+    test: "npm run quality:ci",
+    "docs:list": "bash ./scripts/docs-list.sh",
+    "docs:list:workspace": "bash ./scripts/docs-list.sh --workspace --discover",
+    "docs:list:json": "bash ./scripts/docs-list.sh --json",
+    "release:check": "bash ./scripts/release-check.sh",
+    "release:check:quick": "SKIP_PI_SMOKE=1 bash ./scripts/release-check.sh"
+  };
 
-  const testScript = p.scripts?.test;
-  if (testScript !== "bash ./scripts/validate-structure.sh") {
-    fail("package.json scripts.test must be 'bash ./scripts/validate-structure.sh'");
-  }
-
-  const docsListScript = p.scripts?.["docs:list"];
-  if (docsListScript !== "bash ./scripts/docs-list.sh") {
-    fail("package.json scripts.docs:list must be 'bash ./scripts/docs-list.sh'");
-  }
-
-  const docsListWorkspaceScript = p.scripts?.["docs:list:workspace"];
-  if (docsListWorkspaceScript !== "bash ./scripts/docs-list.sh --workspace --discover") {
-    fail("package.json scripts.docs:list:workspace must be 'bash ./scripts/docs-list.sh --workspace --discover'");
-  }
-
-  const docsListJsonScript = p.scripts?.["docs:list:json"];
-  if (docsListJsonScript !== "bash ./scripts/docs-list.sh --json") {
-    fail("package.json scripts.docs:list:json must be 'bash ./scripts/docs-list.sh --json'");
-  }
-
-  const releaseCheckScript = p.scripts?.["release:check"];
-  if (releaseCheckScript !== "bash ./scripts/release-check.sh") {
-    fail("package.json scripts.release:check must be 'bash ./scripts/release-check.sh'");
-  }
-
-  const releaseCheckQuickScript = p.scripts?.["release:check:quick"];
-  if (releaseCheckQuickScript !== "SKIP_PI_SMOKE=1 bash ./scripts/release-check.sh") {
-    fail("package.json scripts.release:check:quick must be 'SKIP_PI_SMOKE=1 bash ./scripts/release-check.sh'");
+  for (const [scriptName, expected] of Object.entries(scriptExpectations)) {
+    if (p.scripts?.[scriptName] !== expected) {
+      fail(`package.json scripts.${scriptName} must be '${expected}'`);
+    }
   }
 
   if (p.publishConfig?.registry !== "https://registry.npmjs.org/") {
@@ -308,6 +315,9 @@ try {
     }
     if (!p.files.includes("policy/security-policy.json")) {
       fail("package.json files must include 'policy/security-policy.json'");
+    }
+    if (!p.files.includes("policy/stack-lane.json")) {
+      fail("package.json files must include 'policy/stack-lane.json'");
     }
 
     for (const entry of ext) {
@@ -336,6 +346,21 @@ try {
   }
   if (rpManifest["."] !== p.version) {
     fail(".release-please-manifest.json '.' entry must match package.json version");
+  }
+
+  const stackLane = JSON.parse(fs.readFileSync("policy/stack-lane.json", "utf8"));
+  if (stackLane.lane !== "ts") {
+    fail("policy/stack-lane.json lane must be 'ts'");
+  }
+
+  const laneName = stackLane.tech_stack_core?.lane;
+  if (laneName !== "pi-ts") {
+    fail("policy/stack-lane.json tech_stack_core.lane must be 'pi-ts'");
+  }
+
+  const stackRef = stackLane.tech_stack_core?.ref;
+  if (typeof stackRef !== "string" || !/^[0-9a-f]{40}$/i.test(stackRef)) {
+    fail("policy/stack-lane.json tech_stack_core.ref must be a pinned 40-char git SHA");
   }
 } catch (error) {
   fail(`Failed to validate package/release metadata: ${error.message}`);

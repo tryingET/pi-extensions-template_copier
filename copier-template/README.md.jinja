@@ -41,7 +41,23 @@ Run:
 npm run check
 ```
 
-This executes [scripts/validate-structure.sh](scripts/validate-structure.sh).
+`check` routes to `quality:ci` via [scripts/quality-gate.sh](scripts/quality-gate.sh).
+
+## Quality gate lane (TS)
+
+- [scripts/quality-gate.sh](scripts/quality-gate.sh) stages:
+  - `pre-commit`
+  - `pre-push`
+  - `ci`
+- npm script entry points:
+  - `npm run quality:pre-commit`
+  - `npm run quality:pre-push`
+  - `npm run quality:ci`
+- helper scripts:
+  - `npm run lint`
+  - `npm run typecheck`
+- lane metadata:
+  - [policy/stack-lane.json](policy/stack-lane.json)
 
 ## Release + security baseline
 
@@ -133,6 +149,8 @@ TypeScript lane reference for pi extensions:
 uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo
 ```
 
+Pinned lane metadata lives in [policy/stack-lane.json](policy/stack-lane.json).
+
 ## Copier lifecycle policy
 
 - Keep `.copier-answers.yml` committed.
@@ -145,17 +163,13 @@ uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --pr
 
 ## Hook behavior
 
-- Git uses `.githooks/pre-commit` (configured by [scripts/install-hooks.sh](scripts/install-hooks.sh)).
-- If `prek` is available, the hook runs `prek` using [prek.toml](prek.toml).
-- If `prek` is not available, the hook falls back to `scripts/validate-structure.sh`.
-
-Install options for `prek`:
-
-```bash
-npm add -D @j178/prek
-# or
-npm install -g @j178/prek
-```
+- Git hooks path is configured to `.githooks` by [scripts/install-hooks.sh](scripts/install-hooks.sh).
+- [.githooks/pre-commit](.githooks/pre-commit) runs:
+  - `scripts/quality-gate.sh pre-commit`
+- [.githooks/pre-push](.githooks/pre-push) runs:
+  - `scripts/quality-gate.sh pre-push`
+- Repo-local commit workflow prompt:
+  - [`.pi/prompts/commit.md`](.pi/prompts/commit.md)
 
 ## Startup interview flow (project-local)
 

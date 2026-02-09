@@ -31,8 +31,5 @@ jobs:
             npm ci
           fi
 
-      - name: Validate structure
-        run: npm run check
-
-      - name: npm pack dry run
-        run: npm pack --dry-run
+      - name: Run quality gate (ci)
+        run: npm run quality:ci

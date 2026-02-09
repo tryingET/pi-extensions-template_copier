@@ -10,8 +10,13 @@
     "access": "public"
   },
   "scripts": {
-    "check": "bash ./scripts/validate-structure.sh",
-    "test": "bash ./scripts/validate-structure.sh",
+    "lint": "bash ./scripts/quality-gate.sh lint",
+    "typecheck": "bash ./scripts/quality-gate.sh typecheck",
+    "quality:pre-commit": "bash ./scripts/quality-gate.sh pre-commit",
+    "quality:pre-push": "bash ./scripts/quality-gate.sh pre-push",
+    "quality:ci": "bash ./scripts/quality-gate.sh ci",
+    "check": "npm run quality:ci",
+    "test": "npm run quality:ci",
     "docs:list": "bash ./scripts/docs-list.sh",
     "docs:list:workspace": "bash ./scripts/docs-list.sh --workspace --discover",
     "docs:list:json": "bash ./scripts/docs-list.sh --json",
@@ -21,7 +26,8 @@
   "files": [
     "extensions/{{ command_name }}.ts",
     "prompts",
-    "policy/security-policy.json"
+    "policy/security-policy.json",
+    "policy/stack-lane.json"
   ],
   "pi": {
     "extensions": ["./extensions/{{ command_name }}.ts"],
