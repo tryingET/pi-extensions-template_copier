@@ -104,13 +104,22 @@ CONTRACT_COMMAND_NAME=feature-alpha \
   bash ./scripts/generated-contract-test.sh
 ```
 
+Generated repo idempotency check (`copier update` fallback `recopy`):
+
+```bash
+bash ./scripts/idempotency-test-template.sh
+```
+
 Manual invariant check:
 
 ```bash
 bash ./scripts/template-guardrails.sh
 ```
 
-CI guardrails in this repo run invariant checks, smoke generation, and generated-contract assertions across name-variant matrix cases.
+CI guardrails in this repo run invariant checks, smoke generation,
+generated-contract assertions across name-variant matrix cases, and
+idempotency verification. On failures, CI uploads forensics artifacts
+(logs + generated temp repo) for debugging.
 
 ## Copier update policy
 

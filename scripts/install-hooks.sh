@@ -9,7 +9,8 @@ chmod +x \
   scripts/install-hooks.sh \
   scripts/template-guardrails.sh \
   scripts/smoke-test-template.sh \
-  scripts/generated-contract-test.sh
+  scripts/generated-contract-test.sh \
+  scripts/idempotency-test-template.sh
 
 git config core.hooksPath .githooks
 

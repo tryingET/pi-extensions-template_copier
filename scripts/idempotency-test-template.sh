@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TEMPLATE_SRC="${1:-$ROOT_DIR}"
+REPO_NAME="${IDEMPOTENCY_REPO_NAME:-template-idempotency}"
+COMMAND_NAME="${IDEMPOTENCY_COMMAND_NAME:-template-idempotency}"
+TEMPLATE_REF="${PI_TEMPLATE_REF:-HEAD}"
+
+if ! command -v copier >/dev/null 2>&1; then
+  echo "copier is required for idempotency testing" >&2
+  exit 1
+fi
+
+if ! command -v git >/dev/null 2>&1; then
+  echo "git is required for idempotency testing" >&2
+  exit 1
+fi
+
+TMP_DIR="$(mktemp -d)"
+DEST_DIR="$TMP_DIR/$REPO_NAME"
+
+cleanup() {
+  if [[ "${KEEP_IDEMPOTENCY_DIR:-0}" == "1" ]]; then
+    echo "Keeping idempotency directory: $TMP_DIR"
+  else
+    rm -rf "$TMP_DIR"
+  fi
+}
+trap cleanup EXIT
+
+copier_args=(
+  copy
+  --trust
+  --defaults
+  -d "repo_name=$REPO_NAME"
+  -d "command_name=$COMMAND_NAME"
+)
+
+if [[ -n "$TEMPLATE_REF" ]]; then
+  copier_args+=(--vcs-ref "$TEMPLATE_REF")
+fi
+
+copier "${copier_args[@]}" "$TEMPLATE_SRC" "$DEST_DIR"
+
+(
+  cd "$DEST_DIR"
+  git config user.name "${IDEMPOTENCY_GIT_NAME:-template-ci}"
+  git config user.email "${IDEMPOTENCY_GIT_EMAIL:-template-ci@example.invalid}"
+  git add -A
+  git commit -q -m "baseline snapshot"
+)
+
+update_args=(update --trust --defaults)
+recopy_args=(recopy --trust --defaults)
+
+if [[ -n "$TEMPLATE_REF" ]]; then
+  update_args+=(--vcs-ref "$TEMPLATE_REF")
+  recopy_args+=(--vcs-ref "$TEMPLATE_REF")
+fi
+
+update_log="$TMP_DIR/idempotency-update.log"
+operation="update"
+if ! (
+  cd "$DEST_DIR"
+  copier "${update_args[@]}" >"$update_log" 2>&1
+); then
+  operation="recopy"
+  echo "copier update failed; falling back to copier recopy" >&2
+  tail -n 20 "$update_log" >&2 || true
+  (
+    cd "$DEST_DIR"
+    copier "${recopy_args[@]}"
+  )
+fi
+
+template_source_dirty=0
+if git -C "$TEMPLATE_SRC" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [[ -n "$(git -C "$TEMPLATE_SRC" status --porcelain)" ]]; then
+    template_source_dirty=1
+  fi
+fi
+
+status_output="$(
+  cd "$DEST_DIR"
+  git status --porcelain
+)"
+
+if [[ -n "$status_output" ]]; then
+  if [[ "$template_source_dirty" -eq 1 ]]; then
+    changed_files="$(
+      cd "$DEST_DIR"
+      git diff --name-only
+    )"
+
+    if [[ "$changed_files" == ".copier-answers.yml" ]]; then
+      before_no_commit="$(
+        cd "$DEST_DIR"
+        git show HEAD:.copier-answers.yml | sed '/^_commit:/d'
+      )"
+      after_no_commit="$(
+        cd "$DEST_DIR"
+        sed '/^_commit:/d' .copier-answers.yml
+      )"
+
+      if [[ "$before_no_commit" == "$after_no_commit" ]]; then
+        echo "Idempotency note: source template is dirty; allowing _commit churn in .copier-answers.yml" >&2
+        echo "Idempotency test passed using $operation (dirty-source allowance): $DEST_DIR"
+        exit 0
+      fi
+    fi
+  fi
+
+  echo "Idempotency test failed after $operation: repository changed" >&2
+  echo "$status_output" >&2
+
+  (
+    cd "$DEST_DIR"
+    git status --short > "$TMP_DIR/idempotency-status.txt" || true
+    git --no-pager diff > "$TMP_DIR/idempotency.diff" || true
+    git --no-pager diff --cached > "$TMP_DIR/idempotency-staged.diff" || true
+  )
+
+  exit 1
+fi
+
+echo "Idempotency test passed using $operation: $DEST_DIR"
