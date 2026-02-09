@@ -3,15 +3,19 @@
   "required_files": [
     ".copier-answers.yml",
     "README.md",
+    "LICENSE",
     "AGENTS.md",
     "package.json",
     "extensions/{{command_name}}.ts",
     ".github/workflows/ci.yml",
+    ".github/workflows/release-check.yml",
     ".github/workflows/release-please.yml",
     ".github/workflows/publish.yml",
     ".github/workflows/vouch-check-pr.yml",
     ".github/workflows/vouch-manage.yml",
     "docs/org/operating_model.md",
+    "docs/tech-stack.local.md",
+    "scripts/release-check.sh",
     "scripts/validate-structure.sh"
   ],
   "forbidden_paths": [

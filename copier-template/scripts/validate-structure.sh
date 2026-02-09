@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 required_files=(
   "README.md"
+  "LICENSE"
   "CHANGELOG.md"
   "SECURITY.md"
   "CODE_OF_CONDUCT.md"
@@ -23,6 +24,7 @@ required_files=(
   ".github/ISSUE_TEMPLATE/docs.yml"
   ".github/ISSUE_TEMPLATE/config.yml"
   ".github/workflows/ci.yml"
+  ".github/workflows/release-check.yml"
   ".github/workflows/release-please.yml"
   ".github/workflows/publish.yml"
   ".github/workflows/vouch-check-pr.yml"
@@ -40,6 +42,7 @@ required_files=(
   "docs/project/tactical_goals.md"
   "docs/dev/next_steps.md"
   "docs/dev/status.md"
+  "docs/tech-stack.local.md"
   "docs/dev/CONTRIBUTING.md"
   "docs/dev/EXTENSION_SOP.md"
   ".pi/extensions/startup-intake-router.ts"
@@ -48,6 +51,7 @@ required_files=(
   "scripts/install-hooks.sh"
   "scripts/init-project-docs.sh"
   "scripts/docs-list.sh"
+  "scripts/release-check.sh"
   "scripts/validate-structure.sh"
   ".githooks/pre-commit"
   "prompts/implementation-planning.md"
@@ -80,6 +84,7 @@ required_executables=(
   "scripts/install-hooks.sh"
   "scripts/init-project-docs.sh"
   "scripts/docs-list.sh"
+  "scripts/release-check.sh"
   "scripts/validate-structure.sh"
   ".githooks/pre-commit"
 )
@@ -125,6 +130,21 @@ placeholder_hits="$(grep -R -nE "$placeholder_pattern" .github || true)"
 if [[ -n "$placeholder_hits" ]]; then
   echo "Unresolved placeholders found under .github:" >&2
   echo "$placeholder_hits" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q '^\*\.tgz$' ".gitignore"; then
+  echo ".gitignore must ignore npm tarball outputs (*.tgz)" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "npm run release:check:quick" ".github/workflows/release-check.yml"; then
+  echo "release-check workflow must run npm run release:check:quick" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "npm run release:check:quick" ".github/workflows/publish.yml"; then
+  echo "publish workflow must run npm run release:check:quick before npm publish" >&2
   ((errors+=1))
 fi
 
@@ -209,6 +229,9 @@ try {
   if (!Array.isArray(p.keywords) || !p.keywords.includes("pi-package")) {
     fail("package.json missing keywords entry: pi-package");
   }
+  if (!Array.isArray(p.keywords) || !p.keywords.includes("pi-extension")) {
+    fail("package.json missing keywords entry: pi-extension");
+  }
 
   const ext = p.pi?.extensions;
   if (!Array.isArray(ext) || ext.length < 1) {
@@ -257,6 +280,42 @@ try {
   const docsListJsonScript = p.scripts?.["docs:list:json"];
   if (docsListJsonScript !== "bash ./scripts/docs-list.sh --json") {
     fail("package.json scripts.docs:list:json must be 'bash ./scripts/docs-list.sh --json'");
+  }
+
+  const releaseCheckScript = p.scripts?.["release:check"];
+  if (releaseCheckScript !== "bash ./scripts/release-check.sh") {
+    fail("package.json scripts.release:check must be 'bash ./scripts/release-check.sh'");
+  }
+
+  const releaseCheckQuickScript = p.scripts?.["release:check:quick"];
+  if (releaseCheckQuickScript !== "SKIP_PI_SMOKE=1 bash ./scripts/release-check.sh") {
+    fail("package.json scripts.release:check:quick must be 'SKIP_PI_SMOKE=1 bash ./scripts/release-check.sh'");
+  }
+
+  if (p.publishConfig?.registry !== "https://registry.npmjs.org/") {
+    fail("package.json publishConfig.registry must be 'https://registry.npmjs.org/'");
+  }
+
+  if (p.publishConfig?.access !== "public") {
+    fail("package.json publishConfig.access must be 'public'");
+  }
+
+  if (!Array.isArray(p.files) || p.files.length < 1) {
+    fail("package.json must define a non-empty files array");
+  } else {
+    if (!p.files.includes("prompts")) {
+      fail("package.json files must include 'prompts'");
+    }
+    if (!p.files.includes("policy/security-policy.json")) {
+      fail("package.json files must include 'policy/security-policy.json'");
+    }
+
+    for (const entry of ext) {
+      const normalized = entry.replace(/^\.\//, "");
+      if (!p.files.includes(normalized)) {
+        fail(`package.json files must include extension artifact: ${normalized}`);
+      }
+    }
   }
 
   const rpConfig = JSON.parse(fs.readFileSync(".release-please-config.json", "utf8"));

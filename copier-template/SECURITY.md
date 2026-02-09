@@ -29,6 +29,7 @@ Use **private reporting**.
 ## Release and supply-chain baseline
 
 - Release flow uses release-please PRs before tags/releases.
+- Release checks gate artifact contents (`npm pack --dry-run --json`) and publish dry-run (`npm publish --dry-run`).
 - Publish flow uses npm Trusted Publishing (OIDC) and `npm publish --provenance`.
 - Workflow permissions default to read and elevate per job only.
 - Third-party actions must stay explicit; high-risk paths should be SHA pinned.

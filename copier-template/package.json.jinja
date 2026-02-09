@@ -4,14 +4,25 @@
   "description": "pi extension package: {{ repo_name }}",
   "type": "module",
   "license": "MIT",
-  "keywords": ["pi-package"],
+  "keywords": ["pi-package", "pi-extension"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "scripts": {
     "check": "bash ./scripts/validate-structure.sh",
     "test": "bash ./scripts/validate-structure.sh",
     "docs:list": "bash ./scripts/docs-list.sh",
     "docs:list:workspace": "bash ./scripts/docs-list.sh --workspace --discover",
-    "docs:list:json": "bash ./scripts/docs-list.sh --json"
+    "docs:list:json": "bash ./scripts/docs-list.sh --json",
+    "release:check": "bash ./scripts/release-check.sh",
+    "release:check:quick": "SKIP_PI_SMOKE=1 bash ./scripts/release-check.sh"
   },
+  "files": [
+    "extensions/{{ command_name }}.ts",
+    "prompts",
+    "policy/security-policy.json"
+  ],
   "pi": {
     "extensions": ["./extensions/{{ command_name }}.ts"],
     "prompts": ["./prompts"]

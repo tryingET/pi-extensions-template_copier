@@ -1,0 +1,24 @@
+---
+summary: "Local override notes for the shared tech-stack-core lane used by this repo."
+read_when:
+  - "Aligning implementation decisions with the TypeScript stack baseline."
+  - "Reconciling differences between generic TS guidance and pi extension constraints."
+system4d:
+  container: "Repo-local deltas on top of shared lane guidance."
+  compass: "Keep extension work aligned with reproducible Node/npm release flow."
+  engine: "Use shared lane -> apply local override -> validate with repo scripts."
+  fog: "External lane guidance may evolve independently of this repo."
+---
+
+# tech-stack.local (pi extension flavor)
+
+Primary lane:
+
+- `tech-stack-core show pi-ts --prefer-repo`
+
+Repo-local emphasis:
+
+- Runtime/package manager baseline: Node.js 22 + npm (not Bun-first defaults).
+- Release baseline: release-please + `npm run release:check` + npm trusted publishing.
+- Keep package artifacts deterministic via `package.json` `files` allowlist.
+- Validate structural/docs invariants with `npm run check`.

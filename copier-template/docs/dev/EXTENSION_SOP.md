@@ -32,8 +32,9 @@ system4d:
 
 ## 4) Release
 
-- Update `CHANGELOG.md`.
-- Tag/version according to team policy.
+- Run `npm run release:check` (or `npm run release:check:quick` for artifact-only CI mode).
+- Use release-please PR flow for versioning/changelog updates.
+- Publish from GitHub release after publish workflow checks pass.
 - Sync extension to live pi when needed.
 
 ## 5) Maintain
