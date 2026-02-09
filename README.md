@@ -67,6 +67,35 @@ Generated scaffold includes:
   - `.github/workflows/vouch-check-pr.yml`
   - `.github/workflows/vouch-manage.yml`
 
+## Template-source guardrails (this repo)
+
+This repository is the **Copier template source**, not a generated extension repo.
+
+- Treat `copier-template/` as the source of truth for scaffolded files.
+- Edit template behavior via `copier-template/**`, `copier.yml`, and wrapper scripts.
+- Do **not** run `copier copy ... .` into this repo root.
+- Do **not** commit a root `.copier-answers.yml` in this repo.
+
+Install local pre-commit guardrails once:
+
+```bash
+bash ./scripts/install-hooks.sh
+```
+
+Smoke-test template changes by generating to a temp directory:
+
+```bash
+bash ./scripts/smoke-test-template.sh
+```
+
+Manual invariant check:
+
+```bash
+bash ./scripts/template-guardrails.sh
+```
+
+CI guardrails in this repo run both invariant checks and smoke generation.
+
 ## Copier update policy
 
 Generated repos include `.copier-answers.yml` and should commit it.
