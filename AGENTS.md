@@ -12,5 +12,6 @@ Purpose: maintain Copier template source. Not generated target repo.
 ## Validation loop
 - Run `bash ./scripts/template-guardrails.sh`.
 - Run `bash ./scripts/smoke-test-template.sh`.
+- Run `bash ./scripts/generated-contract-test.sh`.
 - Install local hook once: `bash ./scripts/install-hooks.sh`.
 - Keep this repo clean of generated-root artifacts.

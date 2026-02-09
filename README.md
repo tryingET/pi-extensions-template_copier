@@ -88,13 +88,19 @@ Smoke-test template changes by generating to a temp directory:
 bash ./scripts/smoke-test-template.sh
 ```
 
+Generated repo contract check (required include/exclude paths):
+
+```bash
+bash ./scripts/generated-contract-test.sh
+```
+
 Manual invariant check:
 
 ```bash
 bash ./scripts/template-guardrails.sh
 ```
 
-CI guardrails in this repo run both invariant checks and smoke generation.
+CI guardrails in this repo run invariant checks, smoke generation, and generated-contract assertions.
 
 ## Copier update policy
 

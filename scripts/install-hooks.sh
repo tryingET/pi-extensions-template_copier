@@ -8,7 +8,8 @@ chmod +x \
   .githooks/pre-commit \
   scripts/install-hooks.sh \
   scripts/template-guardrails.sh \
-  scripts/smoke-test-template.sh
+  scripts/smoke-test-template.sh \
+  scripts/generated-contract-test.sh
 
 git config core.hooksPath .githooks
 
