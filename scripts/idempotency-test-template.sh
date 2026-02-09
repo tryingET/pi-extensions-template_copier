@@ -59,6 +59,32 @@ if [[ -n "$TEMPLATE_REF" ]]; then
   recopy_args+=(--vcs-ref "$TEMPLATE_REF")
 fi
 
+extract_update_error_reason() {
+  local log_file="$1"
+  local reason=""
+
+  reason="$(grep -m1 -E 'error: pathspec .* did not match any file\(s\) known to git' "$log_file" || true)"
+  if [[ -z "$reason" ]]; then
+    reason="$(grep -m1 -E 'Unexpected exit code: [0-9]+' "$log_file" || true)"
+  fi
+  if [[ -z "$reason" ]]; then
+    reason="$(grep -m1 -E '(^| )error: ' "$log_file" || true)"
+  fi
+  if [[ -z "$reason" ]]; then
+    reason="$(grep -m1 -E '(Exception|Traceback|failed)' "$log_file" || true)"
+  fi
+  if [[ -z "$reason" ]]; then
+    reason="$(tail -n 1 "$log_file" | tr -d '\r' || true)"
+  fi
+
+  reason="$(echo "$reason" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+  if [[ -z "$reason" ]]; then
+    reason="unknown copier update error"
+  fi
+
+  printf '%s' "$reason"
+}
+
 update_log="$TMP_DIR/idempotency-update.log"
 operation="update"
 if ! (
@@ -66,8 +92,12 @@ if ! (
   copier "${update_args[@]}" >"$update_log" 2>&1
 ); then
   operation="recopy"
-  echo "copier update failed; falling back to copier recopy" >&2
-  tail -n 20 "$update_log" >&2 || true
+  reason="$(extract_update_error_reason "$update_log")"
+  echo "copier update failed (${reason}); falling back to copier recopy" >&2
+  if [[ "${IDEMPOTENCY_VERBOSE:-0}" == "1" ]]; then
+    echo "idempotency debug: showing last 40 update log lines" >&2
+    tail -n 40 "$update_log" >&2 || true
+  fi
   (
     cd "$DEST_DIR"
     copier "${recopy_args[@]}"
