@@ -110,6 +110,18 @@ Generated repo idempotency check (`copier update` fallback `recopy`):
 bash ./scripts/idempotency-test-template.sh
 ```
 
+Code metadata discovery (top-level comments in programming files):
+
+```bash
+node ./scripts/code-list.mjs
+node ./scripts/code-list.mjs --json
+node ./scripts/code-list.mjs --strict
+```
+
+Expected top-level comment keys:
+- `summary:` one-line purpose
+- `read_when:` list of hints for when to read that file
+
 Manual invariant check:
 
 ```bash

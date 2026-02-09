@@ -14,6 +14,7 @@ Purpose: maintain Copier template source. Not generated target repo.
 - Run `bash ./scripts/smoke-test-template.sh`.
 - Run `bash ./scripts/generated-contract-test.sh`.
 - Run `bash ./scripts/idempotency-test-template.sh`.
+- (Optional) Run `node ./scripts/code-list.mjs` to list source-file metadata headers.
 - Keep contract rules in `contract/generated-repo.contract.json`.
 - Install local hook once: `bash ./scripts/install-hooks.sh`.
 - Keep this repo clean of generated-root artifacts.
