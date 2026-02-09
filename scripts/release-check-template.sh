@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+NAME="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).name")"
+VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+
+echo "== template release-check: ${NAME}@${VERSION}"
+
+if [[ "$NAME" != "${NAME,,}" ]]; then
+  echo "Invalid npm package name: must be lowercase: $NAME" >&2
+  exit 1
+fi
+
+echo "== npm pack --dry-run --json"
+PACK_JSON="$(npm pack --dry-run --json)"
+echo "$PACK_JSON"
+
+PACK_JSON="$PACK_JSON" node <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+
+const normalize = (value) => value.replace(/^\.\//, "").replace(/\\/g, "/");
+
+const fail = (msg) => {
+  console.error(msg);
+  process.exit(1);
+};
+
+const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+const filesEntries = Array.isArray(pkg.files)
+  ? pkg.files.map((entry) => normalize(String(entry).trim())).filter(Boolean)
+  : [];
+
+if (filesEntries.length === 0) {
+  fail("package.json must define a non-empty files array for deterministic publish artifacts.");
+}
+
+const expectedExact = new Set(["package.json", "copier.yml"]);
+const expectedDirPrefixes = [];
+const expectedPatternPrefixes = [];
+
+const binEntries =
+  typeof pkg.bin === "string"
+    ? [normalize(pkg.bin)]
+    : pkg.bin && typeof pkg.bin === "object"
+      ? Object.values(pkg.bin).map((entry) => normalize(String(entry)))
+      : [];
+for (const entry of binEntries) expectedExact.add(entry);
+
+for (const entry of filesEntries) {
+  if (/[*?\[]/.test(entry)) {
+    const prefix = normalize(entry.split(/[*?\[]/, 1)[0]);
+    if (!prefix) {
+      fail(`Unsupported files[] wildcard entry without prefix: ${entry}`);
+    }
+    expectedPatternPrefixes.push(prefix);
+    continue;
+  }
+
+  const fullPath = path.resolve(entry);
+  if (!fs.existsSync(fullPath)) {
+    fail(`files[] entry does not exist: ${entry}`);
+  }
+
+  const stat = fs.statSync(fullPath);
+  if (stat.isDirectory()) {
+    const prefix = entry.endsWith("/") ? entry : `${entry}/`;
+    expectedDirPrefixes.push(prefix);
+  } else {
+    expectedExact.add(entry);
+  }
+}
+
+const pack = JSON.parse(process.env.PACK_JSON || "[]");
+if (!Array.isArray(pack) || !pack[0] || !Array.isArray(pack[0].files)) {
+  fail("Could not parse npm pack --dry-run --json output.");
+}
+
+const actual = pack[0].files.map((f) => normalize(String(f.path || ""))).filter(Boolean).sort();
+const actualSet = new Set(actual);
+
+const allowByAlwaysIncluded = (filePath) => {
+  return (
+    /^README(?:\.[^/]+)?$/i.test(filePath) ||
+    /^LICENSE(?:\.[^/]+)?$/i.test(filePath) ||
+    /^NOTICE(?:\.[^/]+)?$/i.test(filePath)
+  );
+};
+
+const missing = [];
+for (const filePath of expectedExact) {
+  if (!actualSet.has(filePath)) {
+    missing.push(filePath);
+  }
+}
+for (const prefix of expectedDirPrefixes) {
+  if (!actual.some((filePath) => filePath.startsWith(prefix))) {
+    missing.push(`${prefix}*`);
+  }
+}
+for (const prefix of expectedPatternPrefixes) {
+  if (!actual.some((filePath) => filePath.startsWith(prefix))) {
+    missing.push(`${prefix}*`);
+  }
+}
+
+const extra = actual.filter((filePath) => {
+  if (expectedExact.has(filePath)) return false;
+  if (expectedDirPrefixes.some((prefix) => filePath.startsWith(prefix))) return false;
+  if (expectedPatternPrefixes.some((prefix) => filePath.startsWith(prefix))) return false;
+  if (allowByAlwaysIncluded(filePath)) return false;
+  return true;
+});
+
+if (missing.length || extra.length) {
+  console.error("Publish file whitelist mismatch.");
+  if (missing.length) console.error(`Missing: ${missing.join(", ")}`);
+  if (extra.length) console.error(`Extra: ${extra.join(", ")}`);
+  process.exit(1);
+}
+
+console.log(`File whitelist OK (${actual.length} files).`);
+NODE
+
+echo "== npm publish --dry-run"
+npm publish --dry-run
+
+TMP_DIR=""
+TARBALL_PATH=""
+cleanup() {
+  if [[ "${KEEP_RELEASE_ARTIFACTS:-0}" != "1" ]]; then
+    if [[ -n "$TMP_DIR" && -d "$TMP_DIR" ]]; then
+      rm -rf "$TMP_DIR"
+    fi
+    if [[ -n "$TARBALL_PATH" && -f "$TARBALL_PATH" ]]; then
+      rm -f "$TARBALL_PATH"
+    fi
+  fi
+}
+trap cleanup EXIT
+
+echo "== npm pack"
+TARBALL="$(npm pack --silent | tail -n 1)"
+TARBALL_PATH="$ROOT_DIR/$TARBALL"
+echo "Tarball: $TARBALL_PATH"
+
+echo "== CLI help smoke"
+node ./bin/new-pi-extension-repo.mjs --help >/dev/null
+
+if [[ "${SKIP_COPIER_SMOKE:-0}" == "1" ]]; then
+  echo "Skipping copier smoke tests (SKIP_COPIER_SMOKE=1)."
+else
+  if ! command -v copier >/dev/null 2>&1; then
+    echo "copier is required for full release checks." >&2
+    echo "Tip: set SKIP_COPIER_SMOKE=1 for artifact-only checks." >&2
+    exit 1
+  fi
+
+  TMP_DIR="$(mktemp -d /tmp/pi-template-release-check-XXXXXX)"
+
+  echo "== local CLI generation smoke"
+  LOCAL_SMOKE_DIR="$TMP_DIR/local-cli-smoke"
+  node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR"
+  (
+    cd "$LOCAL_SMOKE_DIR"
+    npm run check
+  )
+
+  if [[ "${SKIP_PACKAGED_CLI_SMOKE:-0}" != "1" ]]; then
+    echo "== packaged CLI generation smoke (npm exec --package <tarball>)"
+    PACKAGED_SMOKE_DIR="$TMP_DIR/packaged-cli-smoke"
+    npm exec --yes --package "$TARBALL_PATH" -- new-pi-extension-repo packaged-cli-smoke --target-dir "$PACKAGED_SMOKE_DIR"
+    (
+      cd "$PACKAGED_SMOKE_DIR"
+      npm run check
+    )
+  fi
+fi
+
+echo "== npm view ${NAME} version (pre-publish may be 404)"
+set +e
+npm view "$NAME" version --json --registry https://registry.npmjs.org/
+VIEW_EXIT=$?
+set -e
+echo "npm view exit: $VIEW_EXIT"
+if [[ "$VIEW_EXIT" -ne 0 ]]; then
+  echo "Package likely not published yet (expected for first release)."
+fi
+
+echo "template release-check done"

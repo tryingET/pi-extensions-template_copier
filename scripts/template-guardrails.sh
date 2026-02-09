@@ -23,6 +23,141 @@ if [[ ! -d copier-template ]]; then
   fail "Missing copier-template directory."
 fi
 
+required_root_files=(
+  "package.json"
+  "LICENSE"
+  "CHANGELOG.md"
+  ".release-please-config.json"
+  ".release-please-manifest.json"
+  ".github/workflows/template-guardrails.yml"
+  ".github/workflows/release-check.yml"
+  ".github/workflows/release-please.yml"
+  ".github/workflows/publish.yml"
+  "bin/new-pi-extension-repo.mjs"
+  "scripts/release-check-template.sh"
+)
+
+for required_file in "${required_root_files[@]}"; do
+  if [[ ! -f "$required_file" ]]; then
+    fail "Missing required root file: $required_file"
+  fi
+done
+
+required_executables=(
+  "bin/new-pi-extension-repo.mjs"
+  "scripts/release-check-template.sh"
+)
+
+for executable in "${required_executables[@]}"; do
+  if [[ ! -x "$executable" ]]; then
+    fail "Expected executable bit on: $executable"
+  fi
+done
+
+if [[ ! -f .gitignore ]] || ! grep -q '^\*\.tgz$' .gitignore; then
+  fail ".gitignore must include '*.tgz'"
+fi
+
+if ! grep -q "npm run release:check:quick" ".github/workflows/release-check.yml"; then
+  fail "release-check workflow must run npm run release:check:quick"
+fi
+
+if ! grep -q "npm run release:check" ".github/workflows/publish.yml"; then
+  fail "publish workflow must run npm run release:check"
+fi
+
+if ! grep -q "googleapis/release-please-action@v4" ".github/workflows/release-please.yml"; then
+  fail "release-please workflow must use googleapis/release-please-action@v4"
+fi
+
+if command -v node >/dev/null 2>&1; then
+  if ! node - <<'NODE'
+const fs = require("node:fs");
+
+let failed = false;
+const fail = (msg) => {
+  console.error(msg);
+  failed = true;
+};
+
+try {
+  const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+
+  if (typeof pkg.name !== "string" || pkg.name !== pkg.name.toLowerCase()) {
+    fail("package.json name must be lowercase");
+  }
+
+  if (pkg.publishConfig?.registry !== "https://registry.npmjs.org/") {
+    fail("package.json publishConfig.registry must be 'https://registry.npmjs.org/'");
+  }
+
+  if (pkg.publishConfig?.access !== "public") {
+    fail("package.json publishConfig.access must be 'public'");
+  }
+
+  const requiredScripts = {
+    check: "bash ./scripts/template-guardrails.sh",
+    "check:full": "bash ./scripts/template-guardrails.sh && bash ./scripts/smoke-test-template.sh && bash ./scripts/generated-contract-test.sh && bash ./scripts/idempotency-test-template.sh",
+    "release:check": "bash ./scripts/release-check-template.sh",
+    "release:check:quick": "SKIP_COPIER_SMOKE=1 bash ./scripts/release-check-template.sh",
+  };
+  for (const [key, expected] of Object.entries(requiredScripts)) {
+    if (pkg.scripts?.[key] !== expected) {
+      fail(`package.json scripts.${key} must be '${expected}'`);
+    }
+  }
+
+  if (!pkg.bin || typeof pkg.bin !== "object") {
+    fail("package.json must define bin mappings");
+  } else {
+    const binValues = Object.values(pkg.bin).map((v) => String(v));
+    if (!binValues.includes("bin/new-pi-extension-repo.mjs")) {
+      fail("package.json bin must include bin/new-pi-extension-repo.mjs");
+    }
+  }
+
+  if (!Array.isArray(pkg.files) || pkg.files.length < 1) {
+    fail("package.json must define files[]");
+  } else {
+    const requiredFiles = [
+      "bin/new-pi-extension-repo.mjs",
+      "copier-template",
+      "copier-template/.gitignore",
+      "copier.yml",
+      "new-pi-extension-repo.sh",
+      "README.md",
+      "LICENSE",
+    ];
+    for (const entry of requiredFiles) {
+      if (!pkg.files.includes(entry)) {
+        fail(`package.json files[] must include '${entry}'`);
+      }
+    }
+  }
+
+  const rpManifest = JSON.parse(fs.readFileSync(".release-please-manifest.json", "utf8"));
+  if (rpManifest["."] !== pkg.version) {
+    fail(".release-please-manifest.json '.' must match package.json version");
+  }
+
+  const rpConfig = JSON.parse(fs.readFileSync(".release-please-config.json", "utf8"));
+  if (rpConfig["include-v-in-tag"] !== true) {
+    fail(".release-please-config.json must set include-v-in-tag=true");
+  }
+  if (!rpConfig.packages || !rpConfig.packages["."]) {
+    fail(".release-please-config.json must include packages['.']");
+  }
+} catch (error) {
+  fail(`Failed to validate root package metadata: ${error.message}`);
+}
+
+process.exit(failed ? 1 : 0);
+NODE
+  then
+    ((errors+=1))
+  fi
+fi
+
 if [[ "$errors" -gt 0 ]]; then
   echo "Template guardrails failed with $errors issue(s)." >&2
   exit 1

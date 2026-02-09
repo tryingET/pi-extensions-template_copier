@@ -1,0 +1,39 @@
+{
+  "name": "@tryinget/pi-extension-template",
+  "version": "0.1.0",
+  "description": "Copier template + CLI for bootstrapping production-ready pi extension repositories",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "copier-template",
+    "scaffold"
+  ],
+  "bin": {
+    "new-pi-extension-repo": "bin/new-pi-extension-repo.mjs",
+    "pi-extension-template": "bin/new-pi-extension-repo.mjs"
+  },
+  "files": [
+    "bin/new-pi-extension-repo.mjs",
+    "copier-template",
+    "copier-template/.gitignore",
+    "copier.yml",
+    "new-pi-extension-repo.sh",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "bash ./scripts/template-guardrails.sh",
+    "check:full": "bash ./scripts/template-guardrails.sh && bash ./scripts/smoke-test-template.sh && bash ./scripts/generated-contract-test.sh && bash ./scripts/idempotency-test-template.sh",
+    "release:check": "bash ./scripts/release-check-template.sh",
+    "release:check:quick": "SKIP_COPIER_SMOKE=1 bash ./scripts/release-check-template.sh"
+  }
+}
