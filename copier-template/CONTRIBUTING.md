@@ -18,9 +18,17 @@ Primary contributor guide: [docs/dev/CONTRIBUTING.md](docs/dev/CONTRIBUTING.md)
 
 1. Read applicable docs (`npm run docs:list`).
 2. Keep changes scoped.
-3. Run `npm run check`.
-4. Update docs/changelog when behavior changes.
-5. Open a PR with validation output.
+3. Run `npm run fix`.
+4. Run `npm run check`.
+5. Update docs/changelog when behavior changes.
+6. Open a PR with validation output.
+
+## Biome suppressions
+
+Canonical policy: [docs/dev/CONTRIBUTING.md#biome-suppression-policy](docs/dev/CONTRIBUTING.md#biome-suppression-policy)
+
+- Every `biome-ignore` must include a short rationale.
+- Long-lived suppressions must include a tracking reference (`TODO(#123)` or `Issue: #123`).
 
 ## Conduct + support
 

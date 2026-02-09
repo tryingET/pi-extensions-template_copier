@@ -16,15 +16,29 @@ system4d:
 1. Create a focused branch.
 2. Run `npm run docs:list` and read matched docs before cross-cutting changes.
 3. Implement one scoped change.
-4. Run `npm run check`.
-5. Update docs/changelog where relevant.
-6. Open PR with concise rationale and validation output.
+4. Run `npm run fix` (Biome auto-fix).
+5. Run `npm run check`.
+6. Update docs/changelog where relevant.
+7. Open PR with concise rationale and validation output.
 
 ## Standards
 
 - Keep diffs small and reviewable.
 - Preserve markdown frontmatter in generated docs.
 - Prefer explicit scripts over manual one-off commands.
+
+## Biome suppression policy
+
+- Prefer fixing the root cause over adding suppression comments.
+- Every `biome-ignore` must include a short rationale after `:`.
+- If a suppression cannot be removed in the same PR, add a tracking reference (`TODO(#123)` or `Issue: #123`).
+- Keep suppressions rule-scoped and line-scoped (no file-wide blanket ignores).
+
+Example:
+
+```ts
+// biome-ignore lint/suspicious/noExplicitAny: upstream SDK type gap; TODO(#123) remove after typed client migration.
+```
 
 ## Copier policy
 

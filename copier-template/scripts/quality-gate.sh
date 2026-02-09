@@ -7,34 +7,42 @@ cd "$ROOT_DIR"
 STAGE="${1:-}"
 
 usage() {
-  echo "Usage: bash ./scripts/quality-gate.sh <lint|typecheck|pre-commit|pre-push|ci>" >&2
+  echo "Usage: bash ./scripts/quality-gate.sh <lint|fix|typecheck|pre-commit|pre-push|ci>" >&2
 }
 
-has_eslint_config() {
-  [[ -f "eslint.config.js" ]] || [[ -f "eslint.config.cjs" ]] || [[ -f "eslint.config.mjs" ]] || \
-  [[ -f ".eslintrc" ]] || [[ -f ".eslintrc.js" ]] || [[ -f ".eslintrc.cjs" ]] || \
-  [[ -f ".eslintrc.json" ]] || [[ -f ".eslintrc.yaml" ]] || [[ -f ".eslintrc.yml" ]]
+has_biome_config() {
+  [[ -f "biome.json" ]] || [[ -f "biome.jsonc" ]]
+}
+
+run_biome() {
+  local -a args=("$@")
+
+  if [[ -x "$ROOT_DIR/node_modules/.bin/biome" ]]; then
+    "$ROOT_DIR/node_modules/.bin/biome" "${args[@]}"
+    return 0
+  fi
+
+  echo "biome: configuration detected but local biome binary is unavailable." >&2
+  echo "Run 'npm install' (or add @biomejs/biome to devDependencies)." >&2
+  exit 1
 }
 
 run_lint() {
-  if ! has_eslint_config; then
-    echo "lint: skipped (no eslint config found)"
+  if ! has_biome_config; then
+    echo "lint: skipped (no biome config found)"
     return 0
   fi
 
-  if [[ -x "$ROOT_DIR/node_modules/.bin/eslint" ]]; then
-    "$ROOT_DIR/node_modules/.bin/eslint" .
+  run_biome check --no-errors-on-unmatched .
+}
+
+run_fix() {
+  if ! has_biome_config; then
+    echo "fix: skipped (no biome config found)"
     return 0
   fi
 
-  if command -v eslint >/dev/null 2>&1; then
-    eslint .
-    return 0
-  fi
-
-  echo "lint: eslint config detected but eslint binary is unavailable." >&2
-  echo "Install eslint (npm install --save-dev eslint)." >&2
-  exit 1
+  run_biome check --write --no-errors-on-unmatched .
 }
 
 run_typecheck() {
@@ -48,13 +56,8 @@ run_typecheck() {
     return 0
   fi
 
-  if command -v tsc >/dev/null 2>&1; then
-    tsc --noEmit
-    return 0
-  fi
-
-  echo "typecheck: tsconfig.json found but tsc binary is unavailable." >&2
-  echo "Install TypeScript (npm install --save-dev typescript)." >&2
+  echo "typecheck: tsconfig.json found but local tsc binary is unavailable." >&2
+  echo "Run 'npm install' (or add typescript to devDependencies)." >&2
   exit 1
 }
 
@@ -86,6 +89,9 @@ run_ci() {
 case "$STAGE" in
   lint)
     run_lint
+    ;;
+  fix)
+    run_fix
     ;;
   typecheck)
     run_typecheck

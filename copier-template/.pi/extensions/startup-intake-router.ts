@@ -27,7 +27,7 @@ function newState(overrides: Partial<RouterState> = {}): RouterState {
 function normalizeInline(value: string, maxLen = 1200): string {
   const compact = value.replace(/\s+/g, " ").trim();
   if (compact.length <= maxLen) return compact;
-  return compact.slice(0, maxLen - 1) + "…";
+  return `${compact.slice(0, maxLen - 1)}…`;
 }
 
 function quoteArg(value: string): string {
@@ -39,6 +39,8 @@ function formatCommand(name: string, args: string[]): string {
 }
 
 export default function startupIntakeRouter(pi: ExtensionAPI) {
+  type RouterContext = Parameters<Parameters<typeof pi.on>[1]>[1];
+
   let state = newState();
 
   const persist = () => {
@@ -51,17 +53,24 @@ export default function startupIntakeRouter(pi: ExtensionAPI) {
     if (save) persist();
   };
 
-  const restore = (ctx: any) => {
+  const restore = (ctx: RouterContext) => {
     const branch = ctx.sessionManager.getBranch();
     let restored: RouterState | undefined;
 
     for (const entry of branch) {
-      if (entry.type === "custom" && entry.customType === STATE_ENTRY && entry.data && typeof entry.data === "object") {
+      if (
+        entry.type === "custom" &&
+        entry.customType === STATE_ENTRY &&
+        entry.data &&
+        typeof entry.data === "object"
+      ) {
         restored = entry.data as RouterState;
       }
     }
 
-    state = restored ? { ...newState(), ...restored, workflowVersion: WORKFLOW_VERSION } : newState();
+    state = restored
+      ? { ...newState(), ...restored, workflowVersion: WORKFLOW_VERSION }
+      : newState();
     setState({
       firstMessageProcessed: false,
       phase: "idle",
@@ -70,7 +79,7 @@ export default function startupIntakeRouter(pi: ExtensionAPI) {
     });
   };
 
-  const prefill = (ctx: any, command: string, notice: string) => {
+  const prefill = (ctx: RouterContext, command: string, notice: string) => {
     if (!ctx.hasUI) return;
     ctx.ui.setEditorText(command);
     ctx.ui.notify(notice, "info");
@@ -144,7 +153,10 @@ export default function startupIntakeRouter(pi: ExtensionAPI) {
       persist();
       if (ctx.hasUI) {
         ctx.ui.setStatus("startup-intake", "ready (reset)");
-        ctx.ui.notify("Startup intake router reset. Next non-command message will propose /init-project-docs.", "info");
+        ctx.ui.notify(
+          "Startup intake router reset. Next non-command message will propose /init-project-docs.",
+          "info",
+        );
       }
     },
   });

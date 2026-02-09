@@ -15,7 +15,7 @@ Production-ready starter scaffold for a pi extension package.
 
 ## Quickstart
 
-1. Install dependencies (if you add any):
+1. Install dependencies:
 
    ```bash
    npm install
@@ -42,9 +42,14 @@ npm run check
 ```
 
 `check` routes to `quality:ci` via [scripts/quality-gate.sh](scripts/quality-gate.sh).
+It enforces structure validation, Biome lint checks, optional TypeScript typechecks, and npm pack dry-run.
 
 ## Quality gate lane (TS)
 
+- formatter/lint baseline:
+  - [biome.jsonc](biome.jsonc)
+  - [.vscode/settings.json](.vscode/settings.json) (Biome formatter + code actions on save for JS/TS/JSON)
+  - pinned local binary via `@biomejs/biome` in `devDependencies`
 - [scripts/quality-gate.sh](scripts/quality-gate.sh) stages:
   - `pre-commit`
   - `pre-push`
@@ -54,7 +59,8 @@ npm run check
   - `npm run quality:pre-push`
   - `npm run quality:ci`
 - helper scripts:
-  - `npm run lint`
+  - `npm run fix` (auto-fix)
+  - `npm run lint` (check-only)
   - `npm run typecheck`
 - lane metadata:
   - [policy/stack-lane.json](policy/stack-lane.json)
@@ -166,6 +172,7 @@ Pinned lane metadata lives in [policy/stack-lane.json](policy/stack-lane.json).
 - Git hooks path is configured to `.githooks` by [scripts/install-hooks.sh](scripts/install-hooks.sh).
 - [.githooks/pre-commit](.githooks/pre-commit) runs:
   - `scripts/quality-gate.sh pre-commit`
+  - check-only (auto-fix with `npm run fix`)
 - [.githooks/pre-push](.githooks/pre-push) runs:
   - `scripts/quality-gate.sh pre-push`
 - Repo-local commit workflow prompt:

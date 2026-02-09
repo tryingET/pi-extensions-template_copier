@@ -22,6 +22,7 @@ _message_after_copy: |
 
   Next:
     cd {{ _copier_conf.dst_path }}
+    npm install
     npm run docs:list
     npm run check
 

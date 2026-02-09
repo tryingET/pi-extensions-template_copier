@@ -13,6 +13,8 @@ required_files=(
   "SUPPORT.md"
   "CONTRIBUTING.md"
   "AGENTS.md"
+  "biome.jsonc"
+  ".vscode/settings.json"
   ".copier-answers.yml"
   "prek.toml"
   ".github/CODEOWNERS"
@@ -67,6 +69,7 @@ required_dirs=(
   ".github"
   ".github/workflows"
   ".github/ISSUE_TEMPLATE"
+  ".vscode"
   "docs/org"
   "docs/dev/plans"
   "examples"
@@ -228,12 +231,77 @@ fi
 if command -v node >/dev/null 2>&1; then
   if ! node - <<'NODE'
 const fs = require("node:fs");
+const path = require("node:path");
 
 let failed = false;
 const fail = (msg) => {
   console.error(msg);
   failed = true;
 };
+
+const biomeIgnoreWithRationalePattern = /\bbiome-ignore\b[^:\n]*:\s*\S+/;
+const biomeIgnoreTrackingPattern = /(TODO\(#\d+\)|Issue:\s*#\d+)/;
+const biomeIgnoreFileExtensions = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts",
+  ".jsonc"
+]);
+const biomeIgnoreSkippedDirs = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "coverage",
+  "external",
+  "ontology"
+]);
+
+function validateBiomeIgnoreGovernance(rootDir) {
+  const walk = (dirPath) => {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        if (biomeIgnoreSkippedDirs.has(entry.name)) {
+          continue;
+        }
+        walk(fullPath);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      if (!biomeIgnoreFileExtensions.has(path.extname(entry.name))) {
+        continue;
+      }
+
+      const relPath = path.relative(rootDir, fullPath).replaceAll("\\", "/");
+      const lines = fs.readFileSync(fullPath, "utf8").split(/\r?\n/);
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        if (!line.includes("biome-ignore")) continue;
+
+        if (!biomeIgnoreWithRationalePattern.test(line)) {
+          fail(
+            `${relPath}:${i + 1} biome-ignore must include a rationale after ':' (example: // biome-ignore lint/<group>/<rule>: <why>)`
+          );
+          continue;
+        }
+
+        if (!biomeIgnoreTrackingPattern.test(line)) {
+          fail(
+            `${relPath}:${i + 1} biome-ignore must include tracking reference TODO(#123) or Issue: #123`
+          );
+        }
+      }
+    }
+  };
+
+  walk(rootDir);
+}
 
 try {
   const qPath = "docs/org/project-docs-intake.questions.json";
@@ -279,6 +347,7 @@ try {
   }
 
   const scriptExpectations = {
+    fix: "bash ./scripts/quality-gate.sh fix",
     lint: "bash ./scripts/quality-gate.sh lint",
     typecheck: "bash ./scripts/quality-gate.sh typecheck",
     "quality:pre-commit": "bash ./scripts/quality-gate.sh pre-commit",
@@ -305,6 +374,17 @@ try {
 
   if (p.publishConfig?.access !== "public") {
     fail("package.json publishConfig.access must be 'public'");
+  }
+
+  if (p.engines?.node !== ">=22") {
+    fail("package.json engines.node must be '>=22'");
+  }
+
+  const biomeVersion = p.devDependencies?.["@biomejs/biome"];
+  if (typeof biomeVersion !== "string") {
+    fail("package.json devDependencies must include @biomejs/biome");
+  } else if (!/^\d+\.\d+\.\d+$/.test(biomeVersion)) {
+    fail("package.json devDependencies.@biomejs/biome must be pinned to an exact semver (X.Y.Z)");
   }
 
   if (!Array.isArray(p.files) || p.files.length < 1) {
@@ -362,6 +442,8 @@ try {
   if (typeof stackRef !== "string" || !/^[0-9a-f]{40}$/i.test(stackRef)) {
     fail("policy/stack-lane.json tech_stack_core.ref must be a pinned 40-char git SHA");
   }
+
+  validateBiomeIgnoreGovernance(".");
 } catch (error) {
   fail(`Failed to validate package/release metadata: ${error.message}`);
 }

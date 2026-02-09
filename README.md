@@ -62,9 +62,10 @@ Generated scaffold includes:
 - package extension entrypoint in `extensions/<command-name>.ts`
 - governance docs + `system4d` frontmatter
 - unified quality gate lane:
+  - Biome baseline: `biome.jsonc` + `.vscode/settings.json` + pinned `@biomejs/biome`
   - `scripts/quality-gate.sh` stages: `pre-commit`, `pre-push`, `ci`
   - hooks: `.githooks/pre-commit`, `.githooks/pre-push`
-  - npm scripts: `quality:pre-commit`, `quality:pre-push`, `quality:ci`
+  - npm scripts: `fix`, `quality:pre-commit`, `quality:pre-push`, `quality:ci`
 - interview-first startup flow:
   - `.pi/extensions/startup-intake-router.ts`
   - `.pi/prompts/init-project-docs.md`
@@ -91,8 +92,6 @@ Generated scaffold includes:
   - `.github/VOUCHED.td`
   - `.github/workflows/vouch-check-pr.yml`
   - `.github/workflows/vouch-manage.yml`
-
-Release parity reference: [docs/release-feature-parity.md](docs/release-feature-parity.md)
 
 TypeScript lane reference (for generated repos):
 - `uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo`

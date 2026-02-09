@@ -5,6 +5,8 @@
     "README.md",
     "LICENSE",
     "AGENTS.md",
+    "biome.jsonc",
+    ".vscode/settings.json",
     "package.json",
     "extensions/{{command_name}}.ts",
     ".github/workflows/ci.yml",

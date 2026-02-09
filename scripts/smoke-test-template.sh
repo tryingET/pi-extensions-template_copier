@@ -45,6 +45,14 @@ copier "${copier_args[@]}" "$TEMPLATE_SRC" "$DEST_DIR"
 
 (
   cd "$DEST_DIR"
+
+  if [[ -f package-lock.json ]]; then
+    npm ci
+  else
+    npm install --package-lock-only --ignore-scripts
+    npm ci
+  fi
+
   npm run check
 )
 

@@ -4,12 +4,19 @@
   "description": "pi extension package: {{ repo_name }}",
   "type": "module",
   "license": "MIT",
-  "keywords": ["pi-package", "pi-extension"],
+  "keywords": [
+    "pi-package",
+    "pi-extension"
+  ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
+    "fix": "bash ./scripts/quality-gate.sh fix",
     "lint": "bash ./scripts/quality-gate.sh lint",
     "typecheck": "bash ./scripts/quality-gate.sh typecheck",
     "quality:pre-commit": "bash ./scripts/quality-gate.sh pre-commit",
@@ -30,8 +37,15 @@
     "policy/stack-lane.json"
   ],
   "pi": {
-    "extensions": ["./extensions/{{ command_name }}.ts"],
-    "prompts": ["./prompts"]
+    "extensions": [
+      "./extensions/{{ command_name }}.ts"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.14"
   },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*",
