@@ -40,6 +40,16 @@ jobs:
   generated-contract:
     runs-on: ubuntu-latest
     needs: guardrails
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo_name: template-contract
+            command_name: template-contract
+          - repo_name: template.contract
+            command_name: feature-alpha
+          - repo_name: template_contract
+            command_name: feature.beta
     steps:
       - uses: actions/checkout@v4
 
@@ -53,4 +63,7 @@ jobs:
 
       - name: Verify generated include/exclude contract
         shell: bash
+        env:
+          CONTRACT_REPO_NAME: ${{ matrix.repo_name }}
+          CONTRACT_COMMAND_NAME: ${{ matrix.command_name }}
         run: bash ./scripts/generated-contract-test.sh

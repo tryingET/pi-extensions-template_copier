@@ -3,12 +3,27 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE_SRC="${1:-$ROOT_DIR}"
+CONTRACT_SPEC="${CONTRACT_SPEC:-$ROOT_DIR/contract/generated-repo.contract.json}"
 REPO_NAME="${CONTRACT_REPO_NAME:-template-contract}"
 COMMAND_NAME="${CONTRACT_COMMAND_NAME:-template-contract}"
 TEMPLATE_REF="${PI_TEMPLATE_REF:-HEAD}"
 
 if ! command -v copier >/dev/null 2>&1; then
   echo "copier is required for generated-contract testing" >&2
+  exit 1
+fi
+
+if [[ ! -f "$CONTRACT_SPEC" ]]; then
+  echo "Missing contract spec file: $CONTRACT_SPEC" >&2
+  exit 1
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON_BIN="python"
+else
+  echo "python is required for generated-contract testing" >&2
   exit 1
 fi
 
@@ -38,59 +53,97 @@ fi
 
 copier "${copier_args[@]}" "$TEMPLATE_SRC" "$DEST_DIR"
 
-errors=0
+"$PYTHON_BIN" - "$CONTRACT_SPEC" "$DEST_DIR" "$COMMAND_NAME" <<'PY'
+import fnmatch
+import glob
+import json
+import re
+import sys
+from pathlib import Path
 
-fail() {
-  echo "$1" >&2
-  ((errors+=1))
-}
+spec_path = Path(sys.argv[1])
+dest_dir = Path(sys.argv[2])
+command_name = sys.argv[3]
 
-required_files=(
-  ".copier-answers.yml"
-  "README.md"
-  "AGENTS.md"
-  "package.json"
-  "extensions/${COMMAND_NAME}.ts"
-  ".github/workflows/ci.yml"
-  ".github/workflows/release-please.yml"
-  ".github/workflows/publish.yml"
-  ".github/workflows/vouch-check-pr.yml"
-  ".github/workflows/vouch-manage.yml"
-  "docs/org/operating_model.md"
-  "scripts/validate-structure.sh"
-)
+try:
+  spec = json.loads(spec_path.read_text(encoding="utf-8"))
+except Exception as error:
+  print(f"Failed to load contract spec: {error}", file=sys.stderr)
+  sys.exit(1)
 
-for file in "${required_files[@]}"; do
-  if [[ ! -f "$DEST_DIR/$file" ]]; then
-    fail "Missing generated contract file: $file"
-  fi
-done
+errors = []
 
-forbidden_paths=(
-  "copier-template"
-  "copier.yml"
-  "new-pi-extension-repo.sh"
-  "scripts/template-guardrails.sh"
-  "scripts/smoke-test-template.sh"
-  "scripts/generated-contract-test.sh"
-  ".github/workflows/template-guardrails.yml"
-)
 
-for path in "${forbidden_paths[@]}"; do
-  if [[ -e "$DEST_DIR/$path" ]]; then
-    fail "Template-source path leaked into generated repo: $path"
-  fi
-done
+def fail(message: str) -> None:
+  errors.append(message)
 
-jinja_hits="$(find "$DEST_DIR" -type f -name "*.jinja" -print)"
-if [[ -n "$jinja_hits" ]]; then
-  fail "Template source files leaked (*.jinja):"
-  echo "$jinja_hits" >&2
-fi
 
-if [[ "$errors" -gt 0 ]]; then
-  echo "Generated contract test failed with $errors issue(s)." >&2
-  exit 1
-fi
+def render(value: str) -> str:
+  return value.replace("{{command_name}}", command_name)
 
-echo "Generated contract test passed: $DEST_DIR"
+
+if spec.get("version") != 1:
+  fail(f"Unsupported contract spec version: {spec.get('version')} (expected 1)")
+
+for rel_path in spec.get("required_files", []):
+  rendered = render(rel_path)
+  if not (dest_dir / rendered).is_file():
+    fail(f"Missing generated contract file: {rendered}")
+
+for rel_path in spec.get("forbidden_paths", []):
+  rendered = render(rel_path)
+  if (dest_dir / rendered).exists():
+    fail(f"Template-source path leaked into generated repo: {rendered}")
+
+for pattern in spec.get("forbidden_globs", []):
+  for match in glob.glob(str(dest_dir / pattern), recursive=True):
+    matched_path = Path(match)
+    if ".git" in matched_path.parts:
+      continue
+    fail(f"Forbidden path match: {matched_path.relative_to(dest_dir)}")
+
+content_patterns = [
+  re.compile(pattern)
+  for pattern in spec.get("forbidden_content_patterns", [])
+]
+content_scan_exclude_paths = spec.get("content_scan_exclude_paths", [])
+
+
+for file_path in dest_dir.rglob("*"):
+  if not file_path.is_file() or ".git" in file_path.parts:
+    continue
+
+  rel_path = file_path.relative_to(dest_dir)
+  rel_path_posix = rel_path.as_posix()
+  if any(
+    fnmatch.fnmatch(rel_path_posix, pattern)
+    for pattern in content_scan_exclude_paths
+  ):
+    continue
+
+  try:
+    content = file_path.read_text(encoding="utf-8")
+  except UnicodeDecodeError:
+    continue
+  except Exception as error:
+    fail(
+      "Unable to read file for placeholder scan: "
+      f"{rel_path} ({error})"
+    )
+    continue
+
+  for pattern in content_patterns:
+    if pattern.search(content):
+      fail(f"Forbidden placeholder pattern '{pattern.pattern}' in {rel_path}")
+
+if errors:
+  for error in errors:
+    print(error, file=sys.stderr)
+  print(
+    f"Generated contract test failed with {len(errors)} issue(s).",
+    file=sys.stderr,
+  )
+  sys.exit(1)
+
+print(f"Generated contract test passed: {dest_dir}")
+PY

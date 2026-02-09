@@ -88,10 +88,20 @@ Smoke-test template changes by generating to a temp directory:
 bash ./scripts/smoke-test-template.sh
 ```
 
-Generated repo contract check (required include/exclude paths):
+Generated repo contract check (required include/exclude paths + placeholder leak scan):
 
 ```bash
 bash ./scripts/generated-contract-test.sh
+```
+
+Contract rules live in `contract/generated-repo.contract.json` (versioned in git).
+
+Run with custom names to test edge inputs:
+
+```bash
+CONTRACT_REPO_NAME=template.contract \
+CONTRACT_COMMAND_NAME=feature-alpha \
+  bash ./scripts/generated-contract-test.sh
 ```
 
 Manual invariant check:
@@ -100,7 +110,7 @@ Manual invariant check:
 bash ./scripts/template-guardrails.sh
 ```
 
-CI guardrails in this repo run invariant checks, smoke generation, and generated-contract assertions.
+CI guardrails in this repo run invariant checks, smoke generation, and generated-contract assertions across name-variant matrix cases.
 
 ## Copier update policy
 
