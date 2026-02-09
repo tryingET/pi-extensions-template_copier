@@ -2,6 +2,11 @@
 
 Purpose: maintain Copier template source. Not generated target repo.
 
+## Context strategy
+- Start with high-signal files (`copier-template/**`, `copier.yml`, relevant `scripts/*`).
+- Skip blanket scans unless task scope is unclear.
+- Once confidence is sufficient, implement complete template-safe changes, then validate.
+
 ## Invariants
 - Keep template content under `copier-template/**`.
 - Keep template config in `copier.yml` (+ wrapper scripts at repo root).

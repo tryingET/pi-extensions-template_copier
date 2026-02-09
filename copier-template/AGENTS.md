@@ -4,8 +4,8 @@ read_when:
   - "Before an agent edits code or docs in this repository."
 system4d:
   container: "Local repo rules for coding agents."
-  compass: "Small diffs, clear validation, no silent assumptions."
-  engine: "Read docs -> implement -> validate -> summarize."
+  compass: "High-signal context, coherent outcomes, clear validation."
+  engine: "Targeted reading -> implement -> validate -> summarize."
   fog: "Task ambiguity resolved by asking concise clarifying questions."
 ---
 
@@ -13,14 +13,14 @@ system4d:
 
 ## Defaults
 
-- Keep changes reviewable and scoped.
+- Prefer coherent, task-complete changes; avoid unrelated churn.
 - Prefer `read` before edits.
 - Prefer markdown links like `[text](path)`.
 - Avoid destructive git/file ops unless explicitly requested.
 
 ## Docs workflow
 
-- Run `npm run docs:list` at task start to surface docs and `read_when` hints.
+- Run `npm run docs:list` when task scope touches architecture/process/domain docs.
 - Use `npm run docs:list:workspace` for workspace/monorepo scans.
 - If your docs-list script is not at `~/programming/agent-scripts/scripts/docs-list.mjs`, set `DOCS_LIST_SCRIPT`.
 
