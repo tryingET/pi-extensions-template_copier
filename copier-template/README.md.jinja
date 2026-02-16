@@ -147,12 +147,12 @@ Wrapper script: [scripts/docs-list.sh](scripts/docs-list.sh)
 Resolution order:
 1. `DOCS_LIST_SCRIPT`
 2. `./scripts/docs-list.mjs` (if vendored)
-3. `~/programming/agent-scripts/scripts/docs-list.mjs`
+3. `~/ai-society/core/agent-scripts/scripts/docs-list.mjs`
 
 TypeScript lane reference for pi extensions:
 
 ```bash
-uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo
+uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show pi-ts --prefer-repo
 ```
 
 Pinned lane metadata lives in [policy/stack-lane.json](policy/stack-lane.json).
@@ -192,8 +192,8 @@ Utility commands:
 
 ## Live sync helper
 
-Use [scripts/sync-to-live.sh](scripts/sync-to-live.sh) to copy the package extension to
-`~/.pi/agent/extensions/`.
+Use [scripts/sync-to-live.sh](scripts/sync-to-live.sh) to copy extension entrypoints plus
+shared `src/` modules into `~/.pi/agent/extensions/{{repo_name}}/`.
 
 Optional flags:
 

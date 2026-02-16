@@ -23,8 +23,8 @@ system4d:
 - Run `npm run docs:list` when task scope touches architecture/process/domain docs.
 - Use `npm run docs:list:workspace` for workspace/monorepo scans.
 - For TypeScript extension conventions, consult `tech-stack-core` lane `pi-ts`:
-  - `uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo`
-- If your docs-list script is not at `~/programming/agent-scripts/scripts/docs-list.mjs`, set `DOCS_LIST_SCRIPT`.
+  - `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show pi-ts --prefer-repo`
+- If your docs-list script is not at `~/ai-society/core/agent-scripts/scripts/docs-list.mjs`, set `DOCS_LIST_SCRIPT`.
 
 ## Validation
 

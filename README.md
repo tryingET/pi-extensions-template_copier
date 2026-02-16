@@ -94,7 +94,7 @@ Generated scaffold includes:
   - `.github/workflows/vouch-manage.yml`
 
 TypeScript lane reference (for generated repos):
-- `uv tool run --from ~/programming/tech-stack-core tech-stack-core show pi-ts --prefer-repo`
+- `uv tool run --from ~/ai-society/core/tech-stack-core tech-stack-core show pi-ts --prefer-repo`
 - pinned lane metadata: `policy/stack-lane.json`
 
 ## Template-source guardrails (this repo)
