@@ -162,6 +162,27 @@ if ! grep -q "npm run quality:ci" ".github/workflows/ci.yml"; then
   ((errors+=1))
 fi
 
+release_please_ref="16a9c90856f42705d54a6fda1823352bdc62cf38"
+if ! grep -q "googleapis/release-please-action@${release_please_ref}" ".github/workflows/release-please.yml"; then
+  echo "release-please workflow must pin googleapis/release-please-action to ${release_please_ref} (v4.4.0)" >&2
+  ((errors+=1))
+fi
+
+if grep -q "command:" ".github/workflows/release-please.yml"; then
+  echo "release-please workflow must not use deprecated 'command' input" >&2
+  ((errors+=1))
+fi
+
+if grep -q "cache: npm" ".github/workflows/publish.yml"; then
+  echo "publish workflow must not require setup-node npm cache when lockfile may be absent" >&2
+  ((errors+=1))
+fi
+
+if ! grep -q "npm install --global npm@\^11.5.1" ".github/workflows/publish.yml"; then
+  echo "publish workflow must upgrade npm to >=11.5.1 for trusted publishing compatibility" >&2
+  ((errors+=1))
+fi
+
 if ! grep -q "scripts/quality-gate.sh\" pre-commit" ".githooks/pre-commit"; then
   echo ".githooks/pre-commit must call scripts/quality-gate.sh pre-commit" >&2
   ((errors+=1))
@@ -172,14 +193,21 @@ if ! grep -q "scripts/quality-gate.sh\" pre-push" ".githooks/pre-push"; then
   ((errors+=1))
 fi
 
-vouch_ref="5713ce1baedf75e2f830afa3dac813a9c48bff12"
-if ! grep -q "mitchellh/vouch/action/check-pr@${vouch_ref}" ".github/workflows/vouch-check-pr.yml"; then
-  echo "vouch-check-pr workflow must pin mitchellh/vouch/action/check-pr to ${vouch_ref}" >&2
+vouch_check_ref="$(grep -Eo 'mitchellh/vouch/action/check-pr@[0-9a-f]{40}' .github/workflows/vouch-check-pr.yml | head -n1 | sed 's/.*@//')"
+vouch_manage_ref="$(grep -Eo 'mitchellh/vouch/action/manage-by-issue@[0-9a-f]{40}' .github/workflows/vouch-manage.yml | head -n1 | sed 's/.*@//')"
+
+if [[ -z "$vouch_check_ref" ]]; then
+  echo "vouch-check-pr workflow must pin mitchellh/vouch/action/check-pr to a 40-char SHA" >&2
   ((errors+=1))
 fi
 
-if ! grep -q "mitchellh/vouch/action/manage-by-issue@${vouch_ref}" ".github/workflows/vouch-manage.yml"; then
-  echo "vouch-manage workflow must pin mitchellh/vouch/action/manage-by-issue to ${vouch_ref}" >&2
+if [[ -z "$vouch_manage_ref" ]]; then
+  echo "vouch-manage workflow must pin mitchellh/vouch/action/manage-by-issue to a 40-char SHA" >&2
+  ((errors+=1))
+fi
+
+if [[ -n "$vouch_check_ref" && -n "$vouch_manage_ref" && "$vouch_check_ref" != "$vouch_manage_ref" ]]; then
+  echo "vouch workflow SHAs must match between check-pr and manage-by-issue" >&2
   ((errors+=1))
 fi
 
@@ -411,6 +439,9 @@ try {
   const rpConfig = JSON.parse(fs.readFileSync(".release-please-config.json", "utf8"));
   if (rpConfig["include-v-in-tag"] !== true) {
     fail(".release-please-config.json must set include-v-in-tag=true");
+  }
+  if (rpConfig["include-component-in-tag"] !== false) {
+    fail(".release-please-config.json must set include-component-in-tag=false");
   }
   if (!rpConfig.packages || !rpConfig.packages["."]) {
     fail(".release-please-config.json must include packages['.']");

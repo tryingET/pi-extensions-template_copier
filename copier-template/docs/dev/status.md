@@ -13,5 +13,6 @@ system4d:
 
 - Scaffold: complete
 - Extension behavior: starter command registered
+- Release baseline: release-please + trusted publishing workflows included
 - Validation hooks: installed
 - Tests: pending

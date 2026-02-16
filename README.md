@@ -182,6 +182,14 @@ npm run release:check
 npm run release:check:quick
 ```
 
+Trusted-publishing learnings captured in this template:
+
+- release-please uses `vX.Y.Z` tags (`include-component-in-tag: false`) so publish trigger logic stays consistent.
+- release-please workflow uses `googleapis/release-please-action` v4.4.0 (SHA pinned) and no deprecated `command` input.
+- publish workflow avoids `setup-node` npm cache dependency on lockfiles and upgrades npm (`>=11.5.1`) for trusted publishing compatibility.
+- for GitHub repos using this template, ensure Actions policy allows external actions and workflow permissions are `Read and write` with PR creation enabled.
+- first-time npm package bootstrap may still require one token-based publish before configuring npm trusted publisher on package settings.
+
 ## Copier update policy
 
 Generated repos include `.copier-answers.yml` and should commit it.
@@ -199,10 +207,15 @@ Generated repos include `.copier-answers.yml` and should commit it.
 2. Run local preflight:
    - `npm run check:full`
    - `npm run release:check`
-3. Commit template changes with Conventional Commit messages.
-4. Push to `main` and let release-please open/update the release PR.
-5. Merge the release PR, then publish from the GitHub Release (`vX.Y.Z`) via workflow.
-6. Prefer `PI_TEMPLATE_REF=vX.Y.Z` in automation for deterministic generation.
+3. Confirm GitHub Actions repo settings:
+   - workflow permissions: `Read and write`
+   - allow GitHub Actions to create/approve PRs
+   - allowed actions policy permits marketplace actions used by workflows
+4. Commit template changes with Conventional Commit messages.
+5. Push to `main` and let release-please open/update the release PR.
+6. Merge the release PR, then publish from the GitHub Release (`vX.Y.Z`) via workflow.
+7. If this is a brand-new npm package, do one bootstrap token publish, then configure npm trusted publisher.
+8. Prefer `PI_TEMPLATE_REF=vX.Y.Z` in automation for deterministic generation.
 
 ## Notes
 

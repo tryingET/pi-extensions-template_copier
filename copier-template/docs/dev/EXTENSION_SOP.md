@@ -33,7 +33,9 @@ system4d:
 ## 4) Release
 
 - Run `npm run release:check` (or `npm run release:check:quick` for artifact-only CI mode).
+- Confirm GitHub Actions settings allow marketplace actions and PR creation by workflows.
 - Use release-please PR flow for versioning/changelog updates.
+- For first-time npm packages, bootstrap once with token auth before switching fully to trusted publishing.
 - Publish from GitHub release after publish workflow checks pass.
 - Sync extension to live pi when needed.
 

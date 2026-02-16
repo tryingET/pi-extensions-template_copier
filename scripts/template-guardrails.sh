@@ -66,8 +66,17 @@ if ! grep -q "npm run release:check" ".github/workflows/publish.yml"; then
   fail "publish workflow must run npm run release:check"
 fi
 
-if ! grep -q "googleapis/release-please-action@v4" ".github/workflows/release-please.yml"; then
-  fail "release-please workflow must use googleapis/release-please-action@v4"
+if grep -q "cache: npm" ".github/workflows/publish.yml"; then
+  fail "publish workflow must not require setup-node npm cache when lockfile may be absent"
+fi
+
+if ! grep -q "npm install --global npm@\^11.5.1" ".github/workflows/publish.yml"; then
+  fail "publish workflow must upgrade npm to >=11.5.1 for trusted publishing compatibility"
+fi
+
+release_please_ref="16a9c90856f42705d54a6fda1823352bdc62cf38"
+if ! grep -q "googleapis/release-please-action@${release_please_ref}" ".github/workflows/release-please.yml"; then
+  fail "release-please workflow must pin googleapis/release-please-action to ${release_please_ref} (v4.4.0)"
 fi
 
 if command -v node >/dev/null 2>&1; then
@@ -143,6 +152,9 @@ try {
   const rpConfig = JSON.parse(fs.readFileSync(".release-please-config.json", "utf8"));
   if (rpConfig["include-v-in-tag"] !== true) {
     fail(".release-please-config.json must set include-v-in-tag=true");
+  }
+  if (rpConfig["include-component-in-tag"] !== false) {
+    fail(".release-please-config.json must set include-component-in-tag=false");
   }
   if (!rpConfig.packages || !rpConfig.packages["."]) {
     fail(".release-please-config.json must include packages['.']");

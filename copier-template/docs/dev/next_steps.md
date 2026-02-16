@@ -13,4 +13,6 @@ system4d:
 
 1. Implement first real command behavior in `extensions/`.
 2. Add at least one automated test in `tests/`.
-3. Run `npm run check` and commit with updated `CHANGELOG.md`.
+3. Verify release baseline early (`npm run release:check:quick`) before first release cycle.
+4. Configure trusted publishing prerequisites (GitHub Actions permissions + npm publisher mapping).
+5. Run `npm run check` and commit with updated `CHANGELOG.md`.
