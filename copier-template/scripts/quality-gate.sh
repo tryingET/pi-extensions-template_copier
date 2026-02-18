@@ -61,6 +61,26 @@ run_typecheck() {
   exit 1
 }
 
+run_tests() {
+  if [[ ! -d "$ROOT_DIR/tests" ]]; then
+    echo "tests: skipped (no tests directory found)"
+    return 0
+  fi
+
+  mapfile -t test_files < <(find "$ROOT_DIR/tests" -maxdepth 1 -type f -name "*.test.*" | sort)
+  if [[ "${#test_files[@]}" -eq 0 ]]; then
+    echo "tests: skipped (no test files matching tests/*.test.*)"
+    return 0
+  fi
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo "tests: node is required to run tests." >&2
+    exit 1
+  fi
+
+  node --test "${test_files[@]}"
+}
+
 run_structure_validation() {
   bash "$ROOT_DIR/scripts/validate-structure.sh"
 }
@@ -76,6 +96,7 @@ run_pre_push() {
   run_structure_validation
   npm run lint
   npm run typecheck
+  run_tests
 }
 
 run_ci() {
@@ -83,6 +104,7 @@ run_ci() {
   run_structure_validation
   npm run lint
   npm run typecheck
+  run_tests
   npm pack --dry-run
 }
 
