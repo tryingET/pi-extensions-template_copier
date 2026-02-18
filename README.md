@@ -4,6 +4,11 @@ Copier-first template for creating production-ready pi extension repositories.
 
 > This same README is used on npm (`@tryinget/pi-extensions-template_copier`).
 
+## Acknowledgements
+
+- [Copier](https://github.com/copier-org/copier) — templating engine used for scaffold generation.
+- [pi-interview-tool](https://github.com/nicobailon/pi-interview-tool) by @nicobailon — optional interactive intake flow used by the template.
+
 ## Quickstart (recommended: npm CLI)
 
 Run directly without global install:
