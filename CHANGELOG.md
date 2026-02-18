@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.2.1...v0.3.0) (2026-02-18)
+
+
+### Features
+
+* add context-aware intake scaffolding and security dependency updates ([7f5d144](https://github.com/tryingET/pi-extensions-template_copier/commit/7f5d1448dc7b93652bdb3cd60c9928dbbd8c73c7))
+* **template:** add context-aware startup intake scaffolding ([402fa19](https://github.com/tryingET/pi-extensions-template_copier/commit/402fa19e6c4cd1450c7b1bb122fcaad39761bf2b))
+
+
+### Bug Fixes
+
+* **security:** pin fast-xml-parser and add dependabot ([a5209dd](https://github.com/tryingET/pi-extensions-template_copier/commit/a5209dd117a7234e4edccd5f815ad9a6b5dd2064))
+
 ## [0.2.1](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.2.0...v0.2.1) (2026-02-18)
 
 
