@@ -105,7 +105,8 @@ Trusted-publishing defaults captured in this scaffold:
 
 - release-please uses `vX.Y.Z` tags (`include-component-in-tag: false`) to align with publish trigger logic.
 - release-please action is pinned to an immutable v4.4.0 SHA.
-- publish workflow upgrades npm (`>=11.5.1`) and avoids lockfile-dependent npm cache setup.
+- publish workflow and release-check workflow both upgrade npm (`>=11.5.1`) for consistent trusted publishing behavior.
+- release-check script tolerates npm `already published version` dry-run responses for post-release idempotency.
 
 Recommended before release:
 

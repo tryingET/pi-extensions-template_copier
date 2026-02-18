@@ -118,7 +118,19 @@ console.log(`File whitelist OK (${actual.length} files).`);
 NODE
 
 echo "== npm publish --dry-run"
-npm publish --dry-run
+set +e
+PUBLISH_DRY_RUN_OUTPUT="$(npm publish --dry-run 2>&1)"
+PUBLISH_DRY_RUN_EXIT=$?
+set -e
+echo "$PUBLISH_DRY_RUN_OUTPUT"
+if [[ "$PUBLISH_DRY_RUN_EXIT" -ne 0 ]]; then
+  if grep -qi "You cannot publish over the previously published versions" <<<"$PUBLISH_DRY_RUN_OUTPUT"; then
+    echo "npm publish --dry-run hit already-published version (${VERSION}); continuing."
+  else
+    echo "npm publish --dry-run failed." >&2
+    exit "$PUBLISH_DRY_RUN_EXIT"
+  fi
+fi
 
 TEST_AGENT_DIR=""
 TARBALL_PATH=""
