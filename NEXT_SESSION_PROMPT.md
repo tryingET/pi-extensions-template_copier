@@ -1,92 +1,119 @@
-# Next session prompt — Path 2/3 consolidation + publish prep
+# Next session prompt — Path 2 template hardening + release flow stabilization
 
 You are working in:
 `~/programming/pi-extensions/pi-extensions-template_copier`
 
 ## What is already done (do not redo)
 
-### Path 3 (separate extension repo)
-- Dedicated extension repo created:
-  - `~/programming/pi-extensions/system4d-intake-workflow`
-- `NEXT_SESSION_PROMPT.md` there has a concrete MVP plan for System4D intake workflow commands/contracts/tests.
-- Repo currently passes baseline check:
-  - `cd ~/programming/pi-extensions/system4d-intake-workflow && npm run check`
+### Repo/package rename + remote setup
+- Local repo path renamed from `template` to:
+  - `~/programming/pi-extensions/pi-extensions-template_copier`
+- Compatibility symlink exists:
+  - `~/programming/pi-extensions/template -> pi-extensions-template_copier`
+- GitHub repo created and pushed:
+  - `https://github.com/tryingET/pi-extensions-template_copier`
+- npm package renamed and published at:
+  - `@tryinget/pi-extensions-template_copier@0.1.0`
 
-### Path 2 (template simplification controls)
-Implemented in template source:
-- `copier.yml` now has vars:
-  - `intake_profile`: `guided|minimal` (default `guided`)
-  - `interview_tool_version`: pinned semver (default `0.5.1`)
-- CLI wrapper + npm bin support these knobs:
-  - `--intake-profile`
-  - `--interview-tool-version`
-  - env fallbacks: `PI_INTAKE_PROFILE`, `PI_INTERVIEW_TOOL_VERSION`
-- generated `package.json` now stores:
-  - `config.intakeProfile`
-  - `config.interviewToolVersion`
-- intake questions are now profile-driven via:
-  - `copier-template/docs/org/project-docs-intake.questions.json.jinja`
-- interview install helper uses pinned version from repo config.
-- structure validation updated for profile-aware checks.
+### Path 2 template behavior implemented
+- Intake profile + pinned interview version controls are in place (`guided|minimal`, pinned semver).
+- Generation defaults to local `HEAD` when using local git template checkout.
+- Generated quality gate now runs tests in `pre-push` and `ci` when `tests/*.test.*` exists.
+- CLI + shell wrapper accept profile/version controls.
 
-### System planning repo (non-template)
-- Created:
-  - `~/ai-society/softwareco/owned/nexus-workflow-platform`
-- Contains Path 5 system vision + migration roadmap docs.
+### Vouch + issue templates status
+- Added to **template source repo root** (`.github`):
+  - `ISSUE_TEMPLATE/{bug-report,feature-request,docs,config}.yml`
+  - `VOUCHED.td`
+  - `workflows/vouch-check-pr.yml`
+  - `workflows/vouch-manage.yml`
+- Updated vouch workflow action refs (root + copier-template) to:
+  - `e87054b83fcd2b10d2155b733a10a8aec344176a`
+- In generated repos, `VOUCHED.td` is now templated (`.jinja`) and seeded via `github_maintainer`.
+  - CLI supports `--github-maintainer`
+  - env supports `PI_GITHUB_MAINTAINER`
+  - fallback detection uses `gh api user -q .login`, then `tryingET`
 
-### Cleanup
-- Wrong repo was deleted:
-  - `~/ai-society/softwareco/owned/pi-system4d-intake-workflow`
+### Cleanup already completed
+- Removed accidental local files `Security` and `Settings`.
+- Deleted orphan release-please branch from remote.
+- Restored workflow permissions to safe defaults (`read`, no approve PR reviews).
 
 ## Important current state
 
-Template repo working tree is intentionally dirty with multiple edits including:
-- release tooling + publish helper (`bin/npm-bootstrap-publish.mjs`)
-- interview/tooling changes
-- copier var/profile changes
-
-Publish is still blocked by auth (`op signin` / `NPM_TOKEN` missing).
+- Template now includes startup intake context seeding and runtime question adaptation.
+- Smoke installs currently report ~20 high-severity npm vulnerabilities (mostly transitive).
+- Next session must run dependency triage with both **dep-viz** and **dep-diet** before release work.
+- Release-please permission follow-up may still be needed depending on GitHub Actions repo settings.
 
 ## High-priority next actions
 
-1. **Scope + stage commits cleanly in template repo**
-   - Group A: release/publish helper work
-   - Group B: interview/profile/pinning changes
-   - Avoid accidental unrelated files unless intentional.
+1. **Run dependency triage (mandatory) with dep-viz + dep-diet**
+   - Build a dependency graph/hotspot view with `dep-viz`.
+   - Build removable/reduction candidates with `dep-diet`.
+   - Cross-check both outputs against `npm audit --json` and identify top transitive roots.
 
-2. **Sync Path 3 repo with latest template knobs**
-   - `system4d-intake-workflow` was generated before newest profile/version wiring.
-   - Apply one of:
-     - regenerate/recopy from updated template, or
-     - manual patch to include `config.intakeProfile` + `config.interviewToolVersion` + pinned install helper behavior.
+2. **Apply dependency reduction/remediation in smallest safe slices**
+   - Prefer upgrades/removals that reduce transitive attack surface without breaking generated-repo contract.
+   - Re-run full template validation after each slice.
 
-3. **Then execute Path 3 MVP in its repo**
-   - Follow:
-     - `~/programming/pi-extensions/system4d-intake-workflow/NEXT_SESSION_PROMPT.md`
+3. **Re-validate release pipeline after dependency cleanup**
+   - `npm run check:full`
+   - `npm run release:check:quick`
+   - Re-check `release-please` permissions/workflow status only after dependency baseline is stable.
 
-4. **Release readiness**
-   - In template repo run:
-     - `npm run check:full`
-     - `npm run release:check:quick`
-   - If green and commit(s) pushed, publish once auth is available.
+4. **Cut next release once vulnerability baseline is improved and checks are green**
+   - Merge release PR,
+   - confirm publish workflow for new tag succeeds.
 
 ## Fast start commands
 
 ```bash
 cd ~/programming/pi-extensions/pi-extensions-template_copier
+
 git status --short
+git log --oneline -n 8
+
+# baseline security snapshot
+npm audit --json > /tmp/pi-template-audit.json || true
+
+# dependency triage tools (use installed CLI syntax; check --help first)
+dep-viz --help
+dep-diet --help
+
+# run both tools against this repo and persist outputs (adjust flags to your installed versions)
+mkdir -p /tmp/pi-template-deps
+dep-viz . > /tmp/pi-template-deps/dep-viz.txt
+dep-diet . > /tmp/pi-template-deps/dep-diet.txt
+
+# then run the template validation loop
 npm run check:full
 npm run release:check:quick
 
-cd ~/programming/pi-extensions/system4d-intake-workflow
-npm run check
+# inspect workflow state
+gh run list --repo tryingET/pi-extensions-template_copier --limit 10
+```
+
+## Release-please permission fix helpers
+
+```bash
+# inspect current workflow permissions
+gh api repos/tryingET/pi-extensions-template_copier/actions/permissions/workflow
+
+# if needed for release-please PR creation:
+# (use intentionally; can be reverted after release flow is stable)
+gh api -X PUT repos/tryingET/pi-extensions-template_copier/actions/permissions/workflow \
+  -f default_workflow_permissions=write \
+  -F can_approve_pull_request_reviews=true
+
+# trigger release-please manually
+gh workflow run release-please.yml --repo tryingET/pi-extensions-template_copier
 ```
 
 ## Decision log (locked)
 
-- Keep `pi-interview` optional, not package dependency.
-- Installation must be pinned by version.
-- Template supports two intake modes:
-  - `guided` (decision cards + recommendations)
-  - `minimal` (text-first)
-- Platform/monorepo vision lives in softwareco planning repo, not in the extension template.
+- Keep `pi-interview` optional (not package dependency).
+- Keep interview install pinned by version.
+- Keep template intake modes: `guided` and `minimal`.
+- Keep Path 3 implementation in its dedicated repo (`system4d-intake-workflow`), not in default template scaffold.
+- Keep root + generated vouch/issue baselines aligned.
