@@ -19,7 +19,7 @@ Run directly without global install:
 ```bash
 npm exec --yes --package @tryinget/pi-extensions-template_copier -- \
   new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
-  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1]
+  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1] [--github-maintainer <handle>]
 ```
 
 Install once, then run:
@@ -27,7 +27,7 @@ Install once, then run:
 ```bash
 npm install -g @tryinget/pi-extensions-template_copier
 new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
-  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1]
+  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1] [--github-maintainer <handle>]
 ```
 
 If you publish under a different npm scope/name, update [package.json](package.json) first.
@@ -96,6 +96,7 @@ Choose intake profile + pinned interview tool version at generation time:
 ```bash
 PI_INTAKE_PROFILE=guided \
 PI_INTERVIEW_TOOL_VERSION=0.5.1 \
+PI_GITHUB_MAINTAINER=tryingET \
   bash ~/programming/pi-extensions/pi-extensions-template_copier/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
@@ -145,7 +146,7 @@ Generated scaffold includes:
   - `.github/pull_request_template.md`
   - `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `CONTRIBUTING.md`
 - vouch trust gate baseline:
-  - `.github/VOUCHED.td`
+  - `.github/VOUCHED.td` (seeded from `github_maintainer`; defaults to the current GitHub user when detectable)
   - `.github/workflows/vouch-check-pr.yml`
   - `.github/workflows/vouch-manage.yml`
 

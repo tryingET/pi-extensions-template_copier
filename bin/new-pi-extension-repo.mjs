@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const TEMPLATE_DIR = path.resolve(__dirname, "..");
 
 const NAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
+const GITHUB_HANDLE_PATTERN = /^[A-Za-z0-9-]+$/;
 const INTAKE_PROFILES = new Set(["guided", "minimal"]);
 const VERSION_PATTERN = /^\d+\.\d+\.\d+([-.][0-9A-Za-z.]+)?$/;
 
@@ -21,12 +22,14 @@ Options:
   --template-ref <ref>             Override copier --vcs-ref
   --intake-profile <guided|minimal>  Intake questionnaire profile (default: guided)
   --interview-tool-version <ver>   Pinned pi-interview npm version (default: 0.5.1)
+  --github-maintainer <handle>     GitHub handle seeded in generated .github/VOUCHED.td
   -h, --help                       Show this help
 
 Env:
   PI_TEMPLATE_REF=<ref>            Template ref fallback (defaults to HEAD for local git template checkouts)
   PI_INTAKE_PROFILE=<profile>      Optional intake profile fallback
   PI_INTERVIEW_TOOL_VERSION=<ver>  Optional interview tool version fallback
+  PI_GITHUB_MAINTAINER=<handle>    Optional GitHub handle fallback for VOUCHED.td
 
 Notes:
   - Requires copier to be installed (pipx/uv/pip).
@@ -67,11 +70,33 @@ function templateSourceIsGitRepo(templateDir) {
   return check.status === 0;
 }
 
+function detectGithubMaintainer(explicitArg) {
+  const explicit = typeof explicitArg === "string" ? explicitArg.trim() : "";
+  if (explicit) return explicit;
+
+  const envValue =
+    process.env.PI_GITHUB_MAINTAINER ?? process.env.GITHUB_USER ?? process.env.GITHUB_ACTOR ?? "";
+  const envHandle = typeof envValue === "string" ? envValue.trim() : "";
+  if (envHandle) return envHandle;
+
+  const gh = spawnSync("gh", ["api", "user", "-q", ".login"], {
+    stdio: ["ignore", "pipe", "ignore"],
+    encoding: "utf8",
+  });
+  if (gh.status === 0) {
+    const login = String(gh.stdout ?? "").trim();
+    if (login) return login;
+  }
+
+  return "tryingET";
+}
+
 const args = process.argv.slice(2);
 let targetDirArg;
 let templateRefArg;
 let intakeProfileArg;
 let interviewToolVersionArg;
+let githubMaintainerArg;
 const positional = [];
 
 for (let i = 0; i < args.length; i += 1) {
@@ -110,6 +135,13 @@ for (let i = 0; i < args.length; i += 1) {
     continue;
   }
 
+  if (arg === "--github-maintainer") {
+    i += 1;
+    if (i >= args.length) fail("Missing value for --github-maintainer");
+    githubMaintainerArg = args[i];
+    continue;
+  }
+
   if (arg.startsWith("-")) {
     fail(`Unknown option: ${arg}`);
   }
@@ -129,6 +161,7 @@ const templateRef = explicitTemplateRef || (templateSourceIsGitRepo(TEMPLATE_DIR
 const intakeProfile = intakeProfileArg ?? process.env.PI_INTAKE_PROFILE ?? "guided";
 const interviewToolVersion =
   interviewToolVersionArg ?? process.env.PI_INTERVIEW_TOOL_VERSION ?? "0.5.1";
+const githubMaintainer = detectGithubMaintainer(githubMaintainerArg);
 
 if (!NAME_PATTERN.test(repoName)) {
   fail("Error: repo-name must match [a-zA-Z0-9._-]+");
@@ -144,6 +177,10 @@ if (!INTAKE_PROFILES.has(intakeProfile)) {
 
 if (!VERSION_PATTERN.test(interviewToolVersion)) {
   fail("Error: --interview-tool-version must be a pinned semver (e.g. 0.5.1)");
+}
+
+if (!GITHUB_HANDLE_PATTERN.test(githubMaintainer)) {
+  fail("Error: --github-maintainer must match GitHub handle characters [A-Za-z0-9-]+");
 }
 
 const targetDir = path.resolve(targetDirArg ?? path.join(process.cwd(), repoName));
@@ -173,6 +210,8 @@ const copierArgs = [
   `intake_profile=${intakeProfile}`,
   "-d",
   `interview_tool_version=${interviewToolVersion}`,
+  "-d",
+  `github_maintainer=${githubMaintainer}`,
 ];
 
 if (templateRef) {

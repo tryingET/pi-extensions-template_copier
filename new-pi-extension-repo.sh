@@ -13,6 +13,9 @@ Optional env:
     Intake questionnaire profile for generated repo (default: guided).
   PI_INTERVIEW_TOOL_VERSION=<x.y.z>
     Pinned pi-interview npm version for install helper (default: 0.5.1).
+  PI_GITHUB_MAINTAINER=<handle>
+    GitHub handle to seed in generated .github/VOUCHED.td.
+    If unset, tries `gh api user -q .login`, then falls back to tryingET.
   ALLOW_DIRTY_TEMPLATE=1
     Allow generation from uncommitted template changes (not recommended for production).
 USAGE
@@ -31,6 +34,7 @@ TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_REF="${PI_TEMPLATE_REF:-}"
 INTAKE_PROFILE="${PI_INTAKE_PROFILE:-guided}"
 INTERVIEW_TOOL_VERSION="${PI_INTERVIEW_TOOL_VERSION:-0.5.1}"
+GITHUB_MAINTAINER="${PI_GITHUB_MAINTAINER:-}"
 
 if [[ ! "$REPO_NAME" =~ ^[a-zA-Z0-9._-]+$ ]]; then
   echo "Error: repo-name must match [a-zA-Z0-9._-]+" >&2
@@ -49,6 +53,19 @@ fi
 
 if [[ ! "$INTERVIEW_TOOL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
   echo "Error: PI_INTERVIEW_TOOL_VERSION must be a pinned semver (e.g. 0.5.1)" >&2
+  exit 1
+fi
+
+if [[ -z "$GITHUB_MAINTAINER" ]] && command -v gh >/dev/null 2>&1; then
+  GITHUB_MAINTAINER="$(gh api user -q .login 2>/dev/null || true)"
+fi
+
+if [[ -z "$GITHUB_MAINTAINER" ]]; then
+  GITHUB_MAINTAINER="tryingET"
+fi
+
+if [[ ! "$GITHUB_MAINTAINER" =~ ^[A-Za-z0-9-]+$ ]]; then
+  echo "Error: PI_GITHUB_MAINTAINER must match GitHub handle characters [A-Za-z0-9-]+" >&2
   exit 1
 fi
 
@@ -88,6 +105,7 @@ copier_args=(
   -d "command_name=$COMMAND_NAME"
   -d "intake_profile=$INTAKE_PROFILE"
   -d "interview_tool_version=$INTERVIEW_TOOL_VERSION"
+  -d "github_maintainer=$GITHUB_MAINTAINER"
 )
 
 if [[ -n "$TEMPLATE_REF" ]]; then

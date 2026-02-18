@@ -12,6 +12,11 @@ command_name:
   default: "{{ repo_name }}"
   help: "Primary extension command name"
 
+github_maintainer:
+  type: str
+  default: "tryingET"
+  help: "GitHub handle to seed in .github/VOUCHED.td"
+
 intake_profile:
   type: str
   choices:
