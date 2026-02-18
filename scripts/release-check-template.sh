@@ -176,7 +176,7 @@ else
 
   echo "== local CLI generation smoke"
   LOCAL_SMOKE_DIR="$TMP_DIR/local-cli-smoke"
-  PI_TEMPLATE_REF=HEAD node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR"
+  node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR"
   install_generated_repo_deps "$LOCAL_SMOKE_DIR"
   (
     cd "$LOCAL_SMOKE_DIR"

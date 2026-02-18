@@ -5,7 +5,7 @@ Copier-first template for creating production-ready pi extension repositories.
 ## Preferred usage (Copier directly)
 
 ```bash
-copier copy --trust ~/programming/pi-extensions/template ~/programming/pi-extensions/<repo-name> \
+copier copy --trust --vcs-ref HEAD ~/programming/pi-extensions/template ~/programming/pi-extensions/<repo-name> \
   -d repo_name=<repo-name> \
   -d command_name=<command-name> \
   -d intake_profile=guided \
@@ -83,7 +83,8 @@ bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [
 
 The wrapper is intentionally thin: argument validation + `copier copy` invocation.
 
-For reproducible generation, optionally pin template ref:
+When run from this template git checkout, it defaults to `--vcs-ref HEAD` so local changes are included.
+For reproducible generation, pin a tag/commit explicitly:
 
 ```bash
 PI_TEMPLATE_REF=v0.1.0 \

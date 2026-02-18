@@ -7,7 +7,8 @@ Usage: new-pi-extension-repo.sh <repo-name> [command-name]
 
 Optional env:
   PI_TEMPLATE_REF=<tag|commit>
-    Pin Copier to a specific template ref (recommended for reproducible generation).
+    Override Copier --vcs-ref.
+    Defaults to HEAD when template source is a local git checkout.
   PI_INTAKE_PROFILE=<guided|minimal>
     Intake questionnaire profile for generated repo (default: guided).
   PI_INTERVIEW_TOOL_VERSION=<x.y.z>
@@ -75,9 +76,8 @@ if git -C "$TEMPLATE_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
   fi
 
-  if [[ -z "$TEMPLATE_REF" ]] && ! git -C "$TEMPLATE_DIR" describe --tags --exact-match >/dev/null 2>&1; then
-    echo "Warning: template HEAD is not tagged." >&2
-    echo "Set PI_TEMPLATE_REF=<tag|commit> for reproducible generation." >&2
+  if [[ -z "$TEMPLATE_REF" ]]; then
+    TEMPLATE_REF="HEAD"
   fi
 fi
 

@@ -18,13 +18,13 @@ function usage() {
 
 Options:
   --target-dir <path>              Destination directory (default: ./<repo-name>)
-  --template-ref <ref>             Optional copier --vcs-ref override
+  --template-ref <ref>             Override copier --vcs-ref
   --intake-profile <guided|minimal>  Intake questionnaire profile (default: guided)
   --interview-tool-version <ver>   Pinned pi-interview npm version (default: 0.5.1)
   -h, --help                       Show this help
 
 Env:
-  PI_TEMPLATE_REF=<ref>            Optional template ref fallback (same as --template-ref)
+  PI_TEMPLATE_REF=<ref>            Template ref fallback (defaults to HEAD for local git template checkouts)
   PI_INTAKE_PROFILE=<profile>      Optional intake profile fallback
   PI_INTERVIEW_TOOL_VERSION=<ver>  Optional interview tool version fallback
 
@@ -58,6 +58,13 @@ function applyNpmIgnoreWorkaround(templateDir) {
       writeFileSync(npmignorePath, npmignoreContent);
     }
   };
+}
+
+function templateSourceIsGitRepo(templateDir) {
+  const check = spawnSync("git", ["-C", templateDir, "rev-parse", "--is-inside-work-tree"], {
+    stdio: "ignore",
+  });
+  return check.status === 0;
 }
 
 const args = process.argv.slice(2);
@@ -117,7 +124,8 @@ if (positional.length < 1 || positional.length > 2) {
 
 const repoName = positional[0];
 const commandName = positional[1] ?? repoName;
-const templateRef = templateRefArg ?? process.env.PI_TEMPLATE_REF ?? "";
+const explicitTemplateRef = templateRefArg ?? process.env.PI_TEMPLATE_REF ?? "";
+const templateRef = explicitTemplateRef || (templateSourceIsGitRepo(TEMPLATE_DIR) ? "HEAD" : "");
 const intakeProfile = intakeProfileArg ?? process.env.PI_INTAKE_PROFILE ?? "guided";
 const interviewToolVersion =
   interviewToolVersionArg ?? process.env.PI_INTERVIEW_TOOL_VERSION ?? "0.5.1";
