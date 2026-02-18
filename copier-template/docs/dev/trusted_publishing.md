@@ -43,6 +43,7 @@ then configure trusted publisher and continue with OIDC-only CI publishes.
 2. **release-please PR creation failure**: workflow permissions are read-only.
 3. **Tag mismatch**: release-please component tags differ from publish trigger expectation.
 4. **Publish setup failure**: npm cache expects lockfile that is not checked in.
+5. **Provenance verification failure (E422)**: `package.json` `repository.url` is missing or does not match the GitHub repository URL in provenance.
 
 ## Verification checklist
 
