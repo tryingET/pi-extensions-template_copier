@@ -107,6 +107,7 @@ Trusted-publishing defaults captured in this scaffold:
 - release-please action is pinned to an immutable v4.4.0 SHA.
 - publish workflow and release-check workflow both upgrade npm (`>=11.5.1`) for consistent trusted publishing behavior.
 - release-check script tolerates npm `already published version` dry-run responses for post-release idempotency.
+- package metadata must include `repository.url` matching the GitHub repo for npm provenance verification.
 
 Recommended before release:
 

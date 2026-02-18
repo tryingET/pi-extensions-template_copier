@@ -6,8 +6,14 @@ cd "$ROOT_DIR"
 
 NAME="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).name")"
 VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+REPOSITORY_URL="$(node -p "(() => { const pkg = JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')); const repo = pkg.repository; if (typeof repo === 'string') return repo.trim(); if (repo && typeof repo === 'object' && typeof repo.url === 'string') return repo.url.trim(); return ''; })()")"
 
 echo "== release-check: ${NAME}@${VERSION}"
+
+if [[ -z "$REPOSITORY_URL" ]]; then
+  echo "package.json repository.url is required for provenance release publishing." >&2
+  exit 1
+fi
 
 if [[ "$NAME" != "${NAME,,}" ]]; then
   echo "Invalid npm package name: must be lowercase: $NAME" >&2
