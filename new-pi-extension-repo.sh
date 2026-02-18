@@ -16,6 +16,8 @@ Optional env:
   PI_GITHUB_MAINTAINER=<handle>
     GitHub handle to seed in generated .github/VOUCHED.td.
     If unset, tries `gh api user -q .login`, then falls back to tryingET.
+  PI_PROJECT_CONTEXT=<text>
+    Optional context seed for startup intake (stored in package.json config).
   ALLOW_DIRTY_TEMPLATE=1
     Allow generation from uncommitted template changes (not recommended for production).
 USAGE
@@ -35,6 +37,7 @@ TEMPLATE_REF="${PI_TEMPLATE_REF:-}"
 INTAKE_PROFILE="${PI_INTAKE_PROFILE:-guided}"
 INTERVIEW_TOOL_VERSION="${PI_INTERVIEW_TOOL_VERSION:-0.5.1}"
 GITHUB_MAINTAINER="${PI_GITHUB_MAINTAINER:-}"
+PROJECT_CONTEXT="${PI_PROJECT_CONTEXT:-}"
 
 if [[ ! "$REPO_NAME" =~ ^[a-zA-Z0-9._-]+$ ]]; then
   echo "Error: repo-name must match [a-zA-Z0-9._-]+" >&2
@@ -66,6 +69,11 @@ fi
 
 if [[ ! "$GITHUB_MAINTAINER" =~ ^[A-Za-z0-9-]+$ ]]; then
   echo "Error: PI_GITHUB_MAINTAINER must match GitHub handle characters [A-Za-z0-9-]+" >&2
+  exit 1
+fi
+
+if [[ ${#PROJECT_CONTEXT} -gt 4000 ]]; then
+  echo "Error: PI_PROJECT_CONTEXT must be <= 4000 characters" >&2
   exit 1
 fi
 
@@ -106,6 +114,7 @@ copier_args=(
   -d "intake_profile=$INTAKE_PROFILE"
   -d "interview_tool_version=$INTERVIEW_TOOL_VERSION"
   -d "github_maintainer=$GITHUB_MAINTAINER"
+  -d "project_context=$PROJECT_CONTEXT"
 )
 
 if [[ -n "$TEMPLATE_REF" ]]; then

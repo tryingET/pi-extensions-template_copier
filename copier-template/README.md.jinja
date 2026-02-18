@@ -215,7 +215,11 @@ Pinned lane metadata lives in [policy/stack-lane.json](policy/stack-lane.json).
 - [`.pi/extensions/startup-intake-router.ts`](.pi/extensions/startup-intake-router.ts) watches the first non-command message in a session.
 - It converts your startup intent into a prefilled command:
   - `/init-project-docs "<your intent>"`
-- [`.pi/prompts/init-project-docs.md`](.pi/prompts/init-project-docs.md) tries to drive the `interview` tool using [docs/org/project-docs-intake.questions.json](docs/org/project-docs-intake.questions.json).
+- [`.pi/prompts/init-project-docs.md`](.pi/prompts/init-project-docs.md) builds runtime interview questions via [scripts/build-intake-questions-runtime.mjs](scripts/build-intake-questions-runtime.mjs).
+- Runtime question context is inferred from:
+  - `README.md`
+  - `package.json` (`config.intakeContextSeed`)
+  - repository folder name
 - Intake profile for this generated repo: `{{ intake_profile }}` (stored in `package.json` as `config.intakeProfile`).
   - `guided`: mixes text with decision cards (`single`/`multi`) and prefilled recommendations
   - `minimal`: text-first intake with no recommendation preselect assumptions

@@ -13,6 +13,7 @@ const NAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 const GITHUB_HANDLE_PATTERN = /^[A-Za-z0-9-]+$/;
 const INTAKE_PROFILES = new Set(["guided", "minimal"]);
 const VERSION_PATTERN = /^\d+\.\d+\.\d+([-.][0-9A-Za-z.]+)?$/;
+const PROJECT_CONTEXT_MAX_LENGTH = 4000;
 
 function usage() {
   console.error(`Usage: new-pi-extension-repo <repo-name> [command-name] [options]
@@ -23,6 +24,7 @@ Options:
   --intake-profile <guided|minimal>  Intake questionnaire profile (default: guided)
   --interview-tool-version <ver>   Pinned pi-interview npm version (default: 0.5.1)
   --github-maintainer <handle>     GitHub handle seeded in generated .github/VOUCHED.td
+  --project-context <text>         Optional context seed for startup intake (stored in package.json config)
   -h, --help                       Show this help
 
 Env:
@@ -30,6 +32,7 @@ Env:
   PI_INTAKE_PROFILE=<profile>      Optional intake profile fallback
   PI_INTERVIEW_TOOL_VERSION=<ver>  Optional interview tool version fallback
   PI_GITHUB_MAINTAINER=<handle>    Optional GitHub handle fallback for VOUCHED.td
+  PI_PROJECT_CONTEXT=<text>        Optional project context seed used by startup intake
 
 Notes:
   - Requires copier to be installed (pipx/uv/pip).
@@ -97,6 +100,7 @@ let templateRefArg;
 let intakeProfileArg;
 let interviewToolVersionArg;
 let githubMaintainerArg;
+let projectContextArg;
 const positional = [];
 
 for (let i = 0; i < args.length; i += 1) {
@@ -142,6 +146,13 @@ for (let i = 0; i < args.length; i += 1) {
     continue;
   }
 
+  if (arg === "--project-context") {
+    i += 1;
+    if (i >= args.length) fail("Missing value for --project-context");
+    projectContextArg = args[i];
+    continue;
+  }
+
   if (arg.startsWith("-")) {
     fail(`Unknown option: ${arg}`);
   }
@@ -162,6 +173,9 @@ const intakeProfile = intakeProfileArg ?? process.env.PI_INTAKE_PROFILE ?? "guid
 const interviewToolVersion =
   interviewToolVersionArg ?? process.env.PI_INTERVIEW_TOOL_VERSION ?? "0.5.1";
 const githubMaintainer = detectGithubMaintainer(githubMaintainerArg);
+const projectContext = String(projectContextArg ?? process.env.PI_PROJECT_CONTEXT ?? "")
+  .replace(/\s+/g, " ")
+  .trim();
 
 if (!NAME_PATTERN.test(repoName)) {
   fail("Error: repo-name must match [a-zA-Z0-9._-]+");
@@ -181,6 +195,10 @@ if (!VERSION_PATTERN.test(interviewToolVersion)) {
 
 if (!GITHUB_HANDLE_PATTERN.test(githubMaintainer)) {
   fail("Error: --github-maintainer must match GitHub handle characters [A-Za-z0-9-]+");
+}
+
+if (projectContext.length > PROJECT_CONTEXT_MAX_LENGTH) {
+  fail(`Error: --project-context must be <= ${PROJECT_CONTEXT_MAX_LENGTH} characters`);
 }
 
 const targetDir = path.resolve(targetDirArg ?? path.join(process.cwd(), repoName));
@@ -212,6 +230,8 @@ const copierArgs = [
   `interview_tool_version=${interviewToolVersion}`,
   "-d",
   `github_maintainer=${githubMaintainer}`,
+  "-d",
+  `project_context=${projectContext}`,
 ];
 
 if (templateRef) {
