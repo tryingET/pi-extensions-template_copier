@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- _No changes yet._
+
 ## [0.3.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.2.1...v0.3.0) (2026-02-18)
 
 
