@@ -26,7 +26,8 @@
   },
   "config": {
     "intakeProfile": "{{ intake_profile }}",
-    "interviewToolVersion": "{{ interview_tool_version }}"
+    "interviewToolVersion": "{{ interview_tool_version }}",
+    "intakeContextSeed": {{ project_context | tojson }}
   },
   "scripts": {
     "fix": "bash ./scripts/quality-gate.sh fix",

@@ -19,6 +19,7 @@
     "docs/tech-stack.local.md",
     "policy/stack-lane.json",
     "scripts/release-check.sh",
+    "scripts/build-intake-questions-runtime.mjs",
     "scripts/validate-structure.sh",
     "scripts/quality-gate.sh",
     ".githooks/pre-commit",

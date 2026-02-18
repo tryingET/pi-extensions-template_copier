@@ -2,6 +2,36 @@
 
 Copier-first template for creating production-ready pi extension repositories.
 
+> This same README is used on npm (`@tryinget/pi-extensions-template_copier`).
+
+## Quickstart (recommended: npm CLI)
+
+Run directly without global install:
+
+```bash
+npm exec --yes --package @tryinget/pi-extensions-template_copier -- \
+  new-pi-extension-repo <repo-name> [command-name] \
+  [--target-dir <path>] \
+  [--intake-profile guided|minimal] \
+  [--interview-tool-version 0.5.1] \
+  [--github-maintainer <handle>] \
+  [--project-context "short domain/context summary"]
+```
+
+Install once, then run:
+
+```bash
+npm install -g @tryinget/pi-extensions-template_copier
+new-pi-extension-repo <repo-name> [command-name] \
+  [--target-dir <path>] \
+  [--intake-profile guided|minimal] \
+  [--interview-tool-version 0.5.1] \
+  [--github-maintainer <handle>] \
+  [--project-context "short domain/context summary"]
+```
+
+`--project-context` seeds startup interview context in generated `package.json` (`config.intakeContextSeed`). Runtime intake also infers context from `README.md` and repo folder name.
+
 ## Preferred usage (Copier directly)
 
 ```bash
@@ -9,25 +39,8 @@ copier copy --trust --vcs-ref HEAD ~/programming/pi-extensions/pi-extensions-tem
   -d repo_name=<repo-name> \
   -d command_name=<command-name> \
   -d intake_profile=guided \
-  -d interview_tool_version=0.5.1
-```
-
-## npm CLI usage (published package)
-
-Run directly without global install:
-
-```bash
-npm exec --yes --package @tryinget/pi-extensions-template_copier -- \
-  new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
-  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1] [--github-maintainer <handle>]
-```
-
-Install once, then run:
-
-```bash
-npm install -g @tryinget/pi-extensions-template_copier
-new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
-  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1] [--github-maintainer <handle>]
+  -d interview_tool_version=0.5.1 \
+  -d project_context="short domain/context summary"
 ```
 
 If you publish under a different npm scope/name, update [package.json](package.json) first.
@@ -97,6 +110,7 @@ Choose intake profile + pinned interview tool version at generation time:
 PI_INTAKE_PROFILE=guided \
 PI_INTERVIEW_TOOL_VERSION=0.5.1 \
 PI_GITHUB_MAINTAINER=tryingET \
+PI_PROJECT_CONTEXT="short domain/context summary" \
   bash ~/programming/pi-extensions/pi-extensions-template_copier/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
@@ -125,6 +139,8 @@ Generated scaffold includes:
   - `.pi/extensions/startup-intake-router.ts`
   - `.pi/prompts/init-project-docs.md`
   - `docs/org/project-docs-intake.questions.json` (profile-driven: `guided` or `minimal`)
+  - `scripts/build-intake-questions-runtime.mjs` (runtime context adaptation from README/package/folder)
+  - optional context seed from scaffold CLI: `--project-context` -> generated `package.json config.intakeContextSeed`
   - optional interview package (pinned by template var): `pi install npm:pi-interview@<version>`
   - fallback chat intake still works if interview tooling is unavailable
 - repo-local commit prompt:

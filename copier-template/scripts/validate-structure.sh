@@ -54,6 +54,7 @@ required_files=(
   "scripts/sync-to-live.sh"
   "scripts/install-hooks.sh"
   "scripts/init-project-docs.sh"
+  "scripts/build-intake-questions-runtime.mjs"
   "scripts/docs-list.sh"
   "scripts/release-check.sh"
   "scripts/validate-structure.sh"
@@ -90,6 +91,7 @@ required_executables=(
   "scripts/sync-to-live.sh"
   "scripts/install-hooks.sh"
   "scripts/init-project-docs.sh"
+  "scripts/build-intake-questions-runtime.mjs"
   "scripts/docs-list.sh"
   "scripts/release-check.sh"
   "scripts/validate-structure.sh"
@@ -489,6 +491,11 @@ try {
   const interviewToolVersion = p.config?.interviewToolVersion;
   if (typeof interviewToolVersion !== "string" || !/^\d+\.\d+\.\d+([-.][0-9A-Za-z.]+)?$/.test(interviewToolVersion)) {
     fail("package.json config.interviewToolVersion must be a pinned semver string (e.g. 0.5.1)");
+  }
+
+  const intakeContextSeed = p.config?.intakeContextSeed;
+  if (typeof intakeContextSeed !== "string") {
+    fail("package.json config.intakeContextSeed must be a string");
   }
 
   const qProfileRaw = JSON.parse(fs.readFileSync("docs/org/project-docs-intake.questions.json", "utf8")).profile;
