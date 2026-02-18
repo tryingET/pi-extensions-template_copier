@@ -8,7 +8,9 @@ usage() {
   cat <<'USAGE'
 Usage: ./scripts/sync-to-live.sh [--with-policy] [--with-prompts] [--all]
 
-Copies all package extension entrypoints from ./extensions into ~/.pi/agent/extensions/.
+Copies extension entrypoints from ./extensions and shared modules from ./src into
+a repo-named subdirectory under ~/.pi/agent/extensions/, then generates index.ts
+for auto-discovery.
 Optional flags also sync policy and prompt templates.
 USAGE
 }
@@ -40,9 +42,13 @@ done
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE_DIR="$ROOT_DIR/extensions"
+SRC_DIR="$ROOT_DIR/src"
 TARGET_DIR="$HOME/.pi/agent/extensions"
+PACKAGE_NAME="$(basename "$ROOT_DIR")"
+PACKAGE_TARGET_DIR="$TARGET_DIR/$PACKAGE_NAME"
 
 mkdir -p "$TARGET_DIR"
+mkdir -p "$PACKAGE_TARGET_DIR"
 
 shopt -s nullglob
 extension_files=("$SOURCE_DIR"/*.ts)
@@ -51,12 +57,59 @@ if (( ${#extension_files[@]} == 0 )); then
   exit 1
 fi
 
+rm -rf "$PACKAGE_TARGET_DIR/extensions"
+mkdir -p "$PACKAGE_TARGET_DIR/extensions"
+
+extension_imports=()
+extension_calls=()
+
 for source_file in "${extension_files[@]}"; do
-  target_file="$TARGET_DIR/$(basename "$source_file")"
-  cp "$source_file" "$target_file"
-  echo "Synced extension: $source_file -> $target_file"
+  base_file="$(basename "$source_file")"
+  cp "$source_file" "$PACKAGE_TARGET_DIR/extensions/$base_file"
+
+  safe_name="$(basename "$source_file" .ts)"
+  safe_name="${safe_name//[^a-zA-Z0-9_]/_}"
+  var_name="ext_${safe_name}"
+
+  extension_imports+=("import $var_name from \"./extensions/$base_file\";")
+  extension_calls+=("  $var_name(pi);")
+
+  stale_top_level="$TARGET_DIR/$base_file"
+  if [[ -f "$stale_top_level" ]]; then
+    rm -f "$stale_top_level"
+    echo "Removed stale top-level extension: $stale_top_level"
+  fi
 done
 shopt -u nullglob
+
+if [[ -d "$SRC_DIR" ]]; then
+  if command -v rsync >/dev/null 2>&1; then
+    mkdir -p "$PACKAGE_TARGET_DIR/src"
+    rsync -a --delete "$SRC_DIR/" "$PACKAGE_TARGET_DIR/src/"
+  else
+    rm -rf "$PACKAGE_TARGET_DIR/src"
+    mkdir -p "$PACKAGE_TARGET_DIR/src"
+    cp -R "$SRC_DIR/." "$PACKAGE_TARGET_DIR/src/"
+  fi
+else
+  rm -rf "$PACKAGE_TARGET_DIR/src"
+fi
+
+index_file="$PACKAGE_TARGET_DIR/index.ts"
+{
+  echo 'import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";'
+  for import_line in "${extension_imports[@]}"; do
+    echo "$import_line"
+  done
+  echo
+  echo 'export default function (pi: ExtensionAPI) {'
+  for call_line in "${extension_calls[@]}"; do
+    echo "$call_line"
+  done
+  echo '}'
+} > "$index_file"
+
+echo "Synced extension package: $PACKAGE_TARGET_DIR"
 
 if [[ "$WITH_PROMPTS" == "true" ]]; then
   PROMPT_SOURCE_DIR="$ROOT_DIR/prompts"
