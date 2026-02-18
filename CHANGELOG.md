@@ -13,6 +13,11 @@
 
 * **security:** pin fast-xml-parser and add dependabot ([a5209dd](https://github.com/tryingET/pi-extensions-template_copier/commit/a5209dd117a7234e4edccd5f815ad9a6b5dd2064))
 
+### Maintenance
+
+* update GitHub Actions majors to `actions/checkout@v6`, `actions/setup-node@v6`, `actions/setup-python@v6`, and `actions/upload-artifact@v6` across root/template workflows; close superseded Dependabot PRs ([9c02233](https://github.com/tryingET/pi-extensions-template_copier/commit/9c02233910d87f7088e6076f58f481f8303469f5))
+* set `package-manager-cache: false` for `setup-node@v6`, document self-hosted runner requirement (`>=2.327.1`), and extend Dependabot to monitor `/copier-template` workflows ([9c02233](https://github.com/tryingET/pi-extensions-template_copier/commit/9c02233910d87f7088e6076f58f481f8303469f5))
+
 ## [0.2.1](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.2.0...v0.2.1) (2026-02-18)
 
 
