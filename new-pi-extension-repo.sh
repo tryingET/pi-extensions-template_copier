@@ -8,6 +8,10 @@ Usage: new-pi-extension-repo.sh <repo-name> [command-name]
 Optional env:
   PI_TEMPLATE_REF=<tag|commit>
     Pin Copier to a specific template ref (recommended for reproducible generation).
+  PI_INTAKE_PROFILE=<guided|minimal>
+    Intake questionnaire profile for generated repo (default: guided).
+  PI_INTERVIEW_TOOL_VERSION=<x.y.z>
+    Pinned pi-interview npm version for install helper (default: 0.5.1).
   ALLOW_DIRTY_TEMPLATE=1
     Allow generation from uncommitted template changes (not recommended for production).
 USAGE
@@ -24,6 +28,8 @@ ROOT_DIR="$HOME/programming/pi-extensions"
 TARGET_DIR="$ROOT_DIR/$REPO_NAME"
 TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_REF="${PI_TEMPLATE_REF:-}"
+INTAKE_PROFILE="${PI_INTAKE_PROFILE:-guided}"
+INTERVIEW_TOOL_VERSION="${PI_INTERVIEW_TOOL_VERSION:-0.5.1}"
 
 if [[ ! "$REPO_NAME" =~ ^[a-zA-Z0-9._-]+$ ]]; then
   echo "Error: repo-name must match [a-zA-Z0-9._-]+" >&2
@@ -32,6 +38,16 @@ fi
 
 if [[ ! "$COMMAND_NAME" =~ ^[a-zA-Z0-9._-]+$ ]]; then
   echo "Error: command-name must match [a-zA-Z0-9._-]+" >&2
+  exit 1
+fi
+
+if [[ "$INTAKE_PROFILE" != "guided" && "$INTAKE_PROFILE" != "minimal" ]]; then
+  echo "Error: PI_INTAKE_PROFILE must be 'guided' or 'minimal'" >&2
+  exit 1
+fi
+
+if [[ ! "$INTERVIEW_TOOL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
+  echo "Error: PI_INTERVIEW_TOOL_VERSION must be a pinned semver (e.g. 0.5.1)" >&2
   exit 1
 fi
 
@@ -70,6 +86,8 @@ copier_args=(
   --trust
   -d "repo_name=$REPO_NAME"
   -d "command_name=$COMMAND_NAME"
+  -d "intake_profile=$INTAKE_PROFILE"
+  -d "interview_tool_version=$INTERVIEW_TOOL_VERSION"
 )
 
 if [[ -n "$TEMPLATE_REF" ]]; then

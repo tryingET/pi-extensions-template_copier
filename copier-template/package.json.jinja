@@ -1,12 +1,13 @@
 {
   "name": "{{ repo_name }}",
   "version": "0.1.0",
-  "description": "pi extension package: {{ repo_name }}",
+  "description": "pi extension package for {{ command_name }} workflows in pi",
   "type": "module",
   "license": "MIT",
   "keywords": [
     "pi-package",
-    "pi-extension"
+    "pi-extension",
+    "{{ command_name }}"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -14,6 +15,10 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "config": {
+    "intakeProfile": "{{ intake_profile }}",
+    "interviewToolVersion": "{{ interview_tool_version }}"
   },
   "scripts": {
     "fix": "bash ./scripts/quality-gate.sh fix",
@@ -33,6 +38,7 @@
   "files": [
     "extensions/{{ command_name }}.ts",
     "prompts",
+    "examples",
     "policy/security-policy.json",
     "policy/stack-lane.json"
   ],

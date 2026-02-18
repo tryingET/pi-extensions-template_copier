@@ -13,20 +13,24 @@ Startup intent (if provided): $@
 
 Steps:
 1. Read `docs/org/project-docs-intake.questions.json`.
-2. If startup intent is non-empty, create `docs/org/project-docs-intake.runtime.questions.json` with one prepended question:
+2. If startup intent is non-empty, create `docs/org/project-docs-intake.runtime.questions.json` by cloning the base questions file and prepending one text question:
    - `id`: `startup_intent_confirmation`
    - `type`: `text`
    - `question`: `Startup intent captured: <startup intent>. Confirm or refine this intent before continuing.`
-3. Run the `interview` tool:
+3. Try running the `interview` tool:
    - `questions`: runtime file from step 2 if created, otherwise `docs/org/project-docs-intake.questions.json`
    - `timeout`: `900`
-4. Use interview responses to update these files:
+4. If `interview` is unavailable or fails (for example missing tool or non-interactive/headless mode), fall back to plain chat intake:
+   - Ask the same questions from `docs/org/project-docs-intake.questions.json` directly in chat.
+   - Keep question ids so mapping stays deterministic.
+5. Use collected responses (tool or fallback chat) to update these files:
    - `docs/org/operating_model.md`
    - `docs/project/foundation.md`
    - `docs/project/vision.md`
    - `docs/project/strategic_goals.md`
    - `docs/project/tactical_goals.md`
-5. Keep wording fully in English.
-6. Keep **organization purpose** separate from **project purpose**.
-7. Keep output compact.
-8. Run `bash ./scripts/validate-structure.sh`.
+6. Keep wording fully in English.
+7. Keep **organization purpose** separate from **project purpose**.
+8. Keep output compact and testable.
+9. Delete `docs/org/project-docs-intake.runtime.questions.json` if it was created.
+10. Run `bash ./scripts/validate-structure.sh`.

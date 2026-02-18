@@ -334,8 +334,74 @@ function validateBiomeIgnoreGovernance(rootDir) {
 try {
   const qPath = "docs/org/project-docs-intake.questions.json";
   const q = JSON.parse(fs.readFileSync(qPath, "utf8"));
-  if (!q.title || !Array.isArray(q.questions) || q.questions.length === 0) {
-    fail(`Invalid interview questions file: ${qPath}`);
+
+  if (typeof q.title !== "string" || q.title.trim().length === 0) {
+    fail(`Interview questions file must include a non-empty title: ${qPath}`);
+  }
+
+  if (typeof q.description !== "string" || q.description.trim().length === 0) {
+    fail(`Interview questions file must include a non-empty description: ${qPath}`);
+  }
+
+  if (!Array.isArray(q.questions) || q.questions.length === 0) {
+    fail(`Interview questions file must include a non-empty questions array: ${qPath}`);
+  }
+
+  const intakeProfile = typeof q.profile === "string" ? q.profile : "guided";
+  if (!["guided", "minimal"].includes(intakeProfile)) {
+    fail(`Interview questions profile must be 'guided' or 'minimal': ${qPath}`);
+  }
+
+  const questionIds = new Set();
+  let decisionQuestionCount = 0;
+  let recommendedQuestionCount = 0;
+
+  for (const [index, entry] of q.questions.entries()) {
+    if (!entry || typeof entry !== "object") {
+      fail(`Interview question at index ${index} must be an object: ${qPath}`);
+    }
+
+    const id = entry.id;
+    const type = entry.type;
+    const questionText = entry.question;
+
+    if (typeof id !== "string" || id.trim().length === 0) {
+      fail(`Interview question at index ${index} is missing a non-empty id: ${qPath}`);
+    }
+
+    if (questionIds.has(id)) {
+      fail(`Interview questions must use unique ids (duplicate: ${id}): ${qPath}`);
+    }
+    questionIds.add(id);
+
+    if (typeof type !== "string" || type.trim().length === 0) {
+      fail(`Interview question '${id}' is missing a non-empty type: ${qPath}`);
+    }
+
+    if (typeof questionText !== "string" || questionText.trim().length === 0) {
+      fail(`Interview question '${id}' is missing a non-empty question field: ${qPath}`);
+    }
+
+    if (type === "single" || type === "multi") {
+      decisionQuestionCount += 1;
+      if (!Array.isArray(entry.options) || entry.options.length === 0) {
+        fail(`Interview question '${id}' (${type}) must include non-empty options: ${qPath}`);
+      }
+    }
+
+    if (entry.recommended !== undefined) {
+      recommendedQuestionCount += 1;
+    }
+  }
+
+  if (intakeProfile === "guided") {
+    if (decisionQuestionCount < 1) {
+      fail(`Guided interview profile must include at least one decision question (single/multi): ${qPath}`);
+    }
+
+    if (recommendedQuestionCount < 1) {
+      fail(`Guided interview profile must include at least one prefilled recommendation: ${qPath}`);
+    }
   }
 } catch (error) {
   fail(`Failed to parse interview questions file: ${error.message}`);
@@ -374,6 +440,13 @@ try {
     }
   }
 
+  const requiredPeers = ["@mariozechner/pi-coding-agent", "@mariozechner/pi-ai"];
+  for (const peer of requiredPeers) {
+    if (typeof p.peerDependencies?.[peer] !== "string") {
+      fail(`package.json peerDependencies must include ${peer}`);
+    }
+  }
+
   const scriptExpectations = {
     fix: "bash ./scripts/quality-gate.sh fix",
     lint: "bash ./scripts/quality-gate.sh lint",
@@ -408,6 +481,22 @@ try {
     fail("package.json engines.node must be '>=22'");
   }
 
+  const intakeProfile = p.config?.intakeProfile;
+  if (intakeProfile !== "guided" && intakeProfile !== "minimal") {
+    fail("package.json config.intakeProfile must be 'guided' or 'minimal'");
+  }
+
+  const interviewToolVersion = p.config?.interviewToolVersion;
+  if (typeof interviewToolVersion !== "string" || !/^\d+\.\d+\.\d+([-.][0-9A-Za-z.]+)?$/.test(interviewToolVersion)) {
+    fail("package.json config.interviewToolVersion must be a pinned semver string (e.g. 0.5.1)");
+  }
+
+  const qProfileRaw = JSON.parse(fs.readFileSync("docs/org/project-docs-intake.questions.json", "utf8")).profile;
+  const qProfile = typeof qProfileRaw === "string" ? qProfileRaw : "guided";
+  if (qProfile !== intakeProfile) {
+    fail("package.json config.intakeProfile must match docs/org/project-docs-intake.questions.json profile");
+  }
+
   const biomeVersion = p.devDependencies?.["@biomejs/biome"];
   if (typeof biomeVersion !== "string") {
     fail("package.json devDependencies must include @biomejs/biome");
@@ -420,6 +509,9 @@ try {
   } else {
     if (!p.files.includes("prompts")) {
       fail("package.json files must include 'prompts'");
+    }
+    if (!p.files.includes("examples")) {
+      fail("package.json files must include 'examples'");
     }
     if (!p.files.includes("policy/security-policy.json")) {
       fail("package.json files must include 'policy/security-policy.json'");

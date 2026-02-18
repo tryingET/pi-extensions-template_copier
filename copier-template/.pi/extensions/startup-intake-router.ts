@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 
-const WORKFLOW_VERSION = "startup-intake-v1";
+const WORKFLOW_VERSION = "startup-intake-v2";
 const STATE_ENTRY = "startup-intake-router-state";
 
 type RouterPhase = "idle" | "intent_captured" | "command_proposed";
@@ -123,7 +123,7 @@ export default function startupIntakeRouter(pi: ExtensionAPI) {
     prefill(
       ctx,
       command,
-      "Startup intent captured. Review/edit and run the command to launch interview-first project doc setup.",
+      "Startup intent captured. Review/edit and run the command to launch updated interview-first project doc setup.",
     );
     ctx.ui.setStatus("startup-intake", "init-project-docs command ready");
 

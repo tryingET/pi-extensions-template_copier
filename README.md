@@ -7,7 +7,9 @@ Copier-first template for creating production-ready pi extension repositories.
 ```bash
 copier copy --trust ~/programming/pi-extensions/template ~/programming/pi-extensions/<repo-name> \
   -d repo_name=<repo-name> \
-  -d command_name=<command-name>
+  -d command_name=<command-name> \
+  -d intake_profile=guided \
+  -d interview_tool_version=0.5.1
 ```
 
 ## npm CLI usage (published package)
@@ -16,17 +18,60 @@ Run directly without global install:
 
 ```bash
 npm exec --yes --package @tryinget/pi-extension-template -- \
-  new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>]
+  new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
+  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1]
 ```
 
 Install once, then run:
 
 ```bash
 npm install -g @tryinget/pi-extension-template
-new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>]
+new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
+  [--intake-profile guided|minimal] [--interview-tool-version 0.5.1]
 ```
 
 If you publish under a different npm scope/name, update [package.json](package.json) first.
+
+## Bootstrap npm publish helper (all packages)
+
+This package also ships `npm-bootstrap-publish` for first-time package publishes.
+It creates a temporary `.npmrc`, runs publish, waits for registry propagation (30s default), retries verification, then cleans up credentials.
+
+```bash
+# token from 1Password CLI
+npm-bootstrap-publish --project ~/programming/pi-extensions/pi-evalset-lab --op op://dev/npm-publish/token
+
+# token from env var
+NPM_TOKEN=... npm-bootstrap-publish --project ~/programming/pi-extensions/pi-evalset-lab
+```
+
+You can run it without global install too:
+
+```bash
+npm exec --yes --package @tryinget/pi-extension-template -- \
+  npm-bootstrap-publish --project ~/programming/pi-extensions/pi-evalset-lab --op op://dev/npm-publish/token
+```
+
+## Local shell shortcut (maintainer convenience)
+
+A local wrapper function is installed at:
+
+- `~/.bashrc.d/functions/npmbp.bash`
+
+`npmbp` delegates to `npm-bootstrap-publish` (global binary if installed, otherwise this repo's `bin/npm-bootstrap-publish.mjs`) and defaults `--project` to your current directory.
+
+`npmbp-dry` is the same wrapper but forces `--dry-run` unless you already passed it.
+
+```bash
+# from inside a package repo
+npmbp --op op://dev/npm-publish/token
+
+# safer preflight (dry-run)
+npmbp-dry --op op://dev/npm-publish/token
+
+# explicit project path
+npmbp ~/programming/pi-extensions/pi-evalset-lab --op op://dev/npm-publish/token
+```
 
 ## Compatibility wrapper
 
@@ -42,6 +87,14 @@ For reproducible generation, optionally pin template ref:
 
 ```bash
 PI_TEMPLATE_REF=v0.1.0 \
+  bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+```
+
+Choose intake profile + pinned interview tool version at generation time:
+
+```bash
+PI_INTAKE_PROFILE=guided \
+PI_INTERVIEW_TOOL_VERSION=0.5.1 \
   bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
@@ -69,7 +122,9 @@ Generated scaffold includes:
 - interview-first startup flow:
   - `.pi/extensions/startup-intake-router.ts`
   - `.pi/prompts/init-project-docs.md`
-  - `docs/org/project-docs-intake.questions.json`
+  - `docs/org/project-docs-intake.questions.json` (profile-driven: `guided` or `minimal`)
+  - optional interview package (pinned by template var): `pi install npm:pi-interview@<version>`
+  - fallback chat intake still works if interview tooling is unavailable
 - repo-local commit prompt:
   - `.pi/prompts/commit.md`
 - docs discovery wrapper:

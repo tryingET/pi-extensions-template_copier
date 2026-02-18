@@ -1,0 +1,174 @@
+{
+  "profile": "{{ intake_profile }}",
+  "title": "Initialize organization and project documents",
+  "description": "{% if intake_profile == 'guided' %}Review recommended options first, then adjust as needed.{% else %}Answer in concise English.{% endif %} Keep organization-level statements distinct from project-level statements.",
+  "questions": [
+{%- if intake_profile == "minimal" %}
+    {
+      "id": "org_purpose",
+      "type": "text",
+      "question": "What is the organization purpose?"
+    },
+    {
+      "id": "org_mission",
+      "type": "text",
+      "question": "What is the current organization mission?"
+    },
+    {
+      "id": "org_vision",
+      "type": "text",
+      "question": "What is the organization vision?"
+    },
+    {
+      "id": "org_strategic_objectives",
+      "type": "text",
+      "question": "List 3-5 organization strategic objectives."
+    },
+    {
+      "id": "org_core_values",
+      "type": "text",
+      "question": "List the core values that should drive ethics and culture."
+    },
+    {
+      "id": "project_purpose",
+      "type": "text",
+      "question": "What is this project purpose (distinct from organization purpose)?"
+    },
+    {
+      "id": "project_mission",
+      "type": "text",
+      "question": "What is the project mission for the next delivery cycle?"
+    },
+    {
+      "id": "project_vision",
+      "type": "text",
+      "question": "What is the project vision?"
+    },
+    {
+      "id": "project_strategic_objectives",
+      "type": "text",
+      "question": "List 3-5 project strategic objectives."
+    },
+    {
+      "id": "project_constraints",
+      "type": "text",
+      "question": "List hard constraints (time, quality, security, scope)."
+    },
+    {
+      "id": "project_success_criteria",
+      "type": "text",
+      "question": "How will success be measured?"
+    }
+{%- else %}
+    {
+      "id": "org_purpose",
+      "type": "text",
+      "question": "What is the organization purpose?"
+    },
+    {
+      "id": "org_mission",
+      "type": "text",
+      "question": "What is the current organization mission?"
+    },
+    {
+      "id": "org_vision",
+      "type": "text",
+      "question": "What is the organization vision?"
+    },
+    {
+      "id": "org_strategic_objectives",
+      "type": "text",
+      "question": "List 3-5 organization strategic objectives."
+    },
+    {
+      "id": "org_core_values",
+      "type": "text",
+      "question": "List the core values that should drive ethics and culture."
+    },
+    {
+      "id": "project_purpose",
+      "type": "text",
+      "question": "What is this project purpose (distinct from organization purpose)?"
+    },
+    {
+      "id": "project_mission",
+      "type": "text",
+      "question": "What is the project mission for the next delivery cycle?"
+    },
+    {
+      "id": "project_vision",
+      "type": "text",
+      "question": "What is the project vision?"
+    },
+    {
+      "id": "project_stage",
+      "type": "single",
+      "question": "Which delivery stage best describes this project now?",
+      "options": [
+        "Discovery and framing",
+        "MVP delivery",
+        "Production hardening",
+        "Scale and optimization"
+      ],
+      "recommended": "MVP delivery",
+      "conviction": "slight"
+    },
+    {
+      "id": "project_priority_tradeoffs",
+      "type": "multi",
+      "question": "Which priorities should dominate decisions in this cycle?",
+      "options": [
+        "Delivery speed",
+        "Reliability and quality",
+        "Security and compliance",
+        "Cost control",
+        "Scope breadth",
+        "Learning and experimentation"
+      ],
+      "recommended": ["Reliability and quality", "Security and compliance"],
+      "weight": "critical"
+    },
+    {
+      "id": "project_strategic_objectives",
+      "type": "text",
+      "question": "List 3-5 project strategic objectives."
+    },
+    {
+      "id": "project_constraints",
+      "type": "multi",
+      "question": "Select the hard constraints that must be treated as non-negotiable.",
+      "options": [
+        "Timebox or deadline",
+        "Security requirements",
+        "Compliance or legal requirements",
+        "Budget cap",
+        "Headcount cap",
+        "Platform or runtime limits",
+        "Backward compatibility",
+        "No external service dependency",
+        "Other"
+      ],
+      "recommended": ["Timebox or deadline", "Security requirements", "Backward compatibility"]
+    },
+    {
+      "id": "project_success_metric_shape",
+      "type": "single",
+      "question": "What primary success measurement shape should the team optimize for?",
+      "options": [
+        "Adoption or usage growth",
+        "Quality and reliability",
+        "Delivery throughput",
+        "Business or revenue impact",
+        "Risk reduction",
+        "Mixed dashboard (balanced scorecard)"
+      ],
+      "recommended": "Mixed dashboard (balanced scorecard)"
+    },
+    {
+      "id": "project_success_criteria",
+      "type": "text",
+      "question": "How will success be measured concretely in this cycle?"
+    }
+{%- endif %}
+  ]
+}

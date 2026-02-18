@@ -33,6 +33,25 @@ Production-ready starter scaffold for a pi extension package.
    pi install /absolute/path/to/{{ repo_name }}
    ```
 
+## Runtime dependencies and packaged files
+
+This extension expects pi host runtime APIs and declares them as `peerDependencies`:
+
+- `@mariozechner/pi-coding-agent`
+- `@mariozechner/pi-ai`
+
+For npm publishing, `package.json` uses a `files` whitelist so required runtime artifacts are explicit:
+
+- `extensions/{{ command_name }}.ts`
+- `prompts/`
+- `examples/`
+- `policy/security-policy.json`
+- `policy/stack-lane.json`
+
+If your extension also needs extra runtime assets, add them to `files` intentionally.
+
+When using UI APIs (`ctx.ui`), guard interactive-only behavior with `ctx.hasUI` so `pi -p` non-interactive runs stay stable.
+
 ## Repository checks
 
 Run:
@@ -194,7 +213,15 @@ Pinned lane metadata lives in [policy/stack-lane.json](policy/stack-lane.json).
 - [`.pi/extensions/startup-intake-router.ts`](.pi/extensions/startup-intake-router.ts) watches the first non-command message in a session.
 - It converts your startup intent into a prefilled command:
   - `/init-project-docs "<your intent>"`
-- [`.pi/prompts/init-project-docs.md`](.pi/prompts/init-project-docs.md) then drives the `interview` tool using [docs/org/project-docs-intake.questions.json](docs/org/project-docs-intake.questions.json).
+- [`.pi/prompts/init-project-docs.md`](.pi/prompts/init-project-docs.md) tries to drive the `interview` tool using [docs/org/project-docs-intake.questions.json](docs/org/project-docs-intake.questions.json).
+- Intake profile for this generated repo: `{{ intake_profile }}` (stored in `package.json` as `config.intakeProfile`).
+  - `guided`: mixes text with decision cards (`single`/`multi`) and prefilled recommendations
+  - `minimal`: text-first intake with no recommendation preselect assumptions
+- If your pi build does not expose `interview`, install optional tooling (pinned):
+  - `pi install npm:pi-interview@{{ interview_tool_version }}`
+  - requires pi-agent/extensions API support (`v0.35.0+` per upstream tool docs)
+  - restart pi after install
+- If `interview` is still unavailable (or you are in non-interactive mode), the prompt falls back to plain chat Q&A using the same question ids.
 
 Utility commands:
 
