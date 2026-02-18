@@ -260,6 +260,8 @@ Trusted-publishing learnings captured in this template:
 - release-please uses `vX.Y.Z` tags (`include-component-in-tag: false`) so publish trigger logic stays consistent.
 - release-please workflow uses `googleapis/release-please-action` v4.4.0 (SHA pinned) and no deprecated `command` input.
 - publish workflow and release-check workflow both upgrade npm (`>=11.5.1`) for consistent trusted publishing behavior.
+- setup-node uses `package-manager-cache: false` to avoid implicit caching behavior changes from setup-node v5+.
+- setup-node v6 / setup-python v6 / upload-artifact v6 require Actions Runner `>=2.327.1` on self-hosted runners (GitHub-hosted runners already satisfy this).
 - release-check script tolerates npm `already published version` dry-run responses for post-release idempotency.
 - package metadata must include `repository.url` matching the GitHub repo for npm provenance verification.
 - for GitHub repos using this template, ensure Actions policy allows external actions and workflow permissions are `Read and write` with PR creation enabled.
