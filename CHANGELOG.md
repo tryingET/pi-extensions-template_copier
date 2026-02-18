@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.2.0...v0.2.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* **release:** add provenance-safe repository metadata ([3ad4639](https://github.com/tryingET/pi-extensions-template_copier/commit/3ad4639eaac18606e38a99b5e898648be9d61b8d))
+
 ## [0.2.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.1.0...v0.2.0) (2026-02-18)
 
 
