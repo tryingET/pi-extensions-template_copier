@@ -12,10 +12,12 @@
   ],
   "bin": {
     "new-pi-extension-repo": "bin/new-pi-extension-repo.mjs",
-    "pi-extension-template": "bin/new-pi-extension-repo.mjs"
+    "pi-extension-template": "bin/new-pi-extension-repo.mjs",
+    "npm-bootstrap-publish": "bin/npm-bootstrap-publish.mjs"
   },
   "files": [
     "bin/new-pi-extension-repo.mjs",
+    "bin/npm-bootstrap-publish.mjs",
     "copier-template",
     "copier-template/.gitignore",
     "copier.yml",

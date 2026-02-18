@@ -34,6 +34,7 @@ required_root_files=(
   ".github/workflows/release-please.yml"
   ".github/workflows/publish.yml"
   "bin/new-pi-extension-repo.mjs"
+  "bin/npm-bootstrap-publish.mjs"
   "scripts/release-check-template.sh"
 )
 
@@ -45,6 +46,7 @@ done
 
 required_executables=(
   "bin/new-pi-extension-repo.mjs"
+  "bin/npm-bootstrap-publish.mjs"
   "scripts/release-check-template.sh"
 )
 
@@ -123,6 +125,9 @@ try {
     if (!binValues.includes("bin/new-pi-extension-repo.mjs")) {
       fail("package.json bin must include bin/new-pi-extension-repo.mjs");
     }
+    if (!binValues.includes("bin/npm-bootstrap-publish.mjs")) {
+      fail("package.json bin must include bin/npm-bootstrap-publish.mjs");
+    }
   }
 
   if (!Array.isArray(pkg.files) || pkg.files.length < 1) {
@@ -130,6 +135,7 @@ try {
   } else {
     const requiredFiles = [
       "bin/new-pi-extension-repo.mjs",
+      "bin/npm-bootstrap-publish.mjs",
       "copier-template",
       "copier-template/.gitignore",
       "copier.yml",

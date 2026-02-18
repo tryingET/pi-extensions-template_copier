@@ -142,6 +142,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
+install_generated_repo_deps() {
+  local repo_dir="$1"
+  (
+    cd "$repo_dir"
+    if [[ -f package-lock.json ]]; then
+      npm ci
+    else
+      npm install --package-lock-only --ignore-scripts
+      npm ci
+    fi
+  )
+}
+
 echo "== npm pack"
 TARBALL="$(npm pack --silent | tail -n 1)"
 TARBALL_PATH="$ROOT_DIR/$TARBALL"
@@ -163,7 +176,8 @@ else
 
   echo "== local CLI generation smoke"
   LOCAL_SMOKE_DIR="$TMP_DIR/local-cli-smoke"
-  node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR"
+  PI_TEMPLATE_REF=HEAD node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR"
+  install_generated_repo_deps "$LOCAL_SMOKE_DIR"
   (
     cd "$LOCAL_SMOKE_DIR"
     npm run check
@@ -173,6 +187,7 @@ else
     echo "== packaged CLI generation smoke (npm exec --package <tarball>)"
     PACKAGED_SMOKE_DIR="$TMP_DIR/packaged-cli-smoke"
     npm exec --yes --package "$TARBALL_PATH" -- new-pi-extension-repo packaged-cli-smoke --target-dir "$PACKAGED_SMOKE_DIR"
+    install_generated_repo_deps "$PACKAGED_SMOKE_DIR"
     (
       cd "$PACKAGED_SMOKE_DIR"
       npm run check
