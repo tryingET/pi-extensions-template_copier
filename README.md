@@ -5,7 +5,7 @@ Copier-first template for creating production-ready pi extension repositories.
 ## Preferred usage (Copier directly)
 
 ```bash
-copier copy --trust --vcs-ref HEAD ~/programming/pi-extensions/template ~/programming/pi-extensions/<repo-name> \
+copier copy --trust --vcs-ref HEAD ~/programming/pi-extensions/pi-extensions-template_copier ~/programming/pi-extensions/<repo-name> \
   -d repo_name=<repo-name> \
   -d command_name=<command-name> \
   -d intake_profile=guided \
@@ -17,7 +17,7 @@ copier copy --trust --vcs-ref HEAD ~/programming/pi-extensions/template ~/progra
 Run directly without global install:
 
 ```bash
-npm exec --yes --package @tryinget/pi-extension-template -- \
+npm exec --yes --package @tryinget/pi-extensions-template_copier -- \
   new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
   [--intake-profile guided|minimal] [--interview-tool-version 0.5.1]
 ```
@@ -25,7 +25,7 @@ npm exec --yes --package @tryinget/pi-extension-template -- \
 Install once, then run:
 
 ```bash
-npm install -g @tryinget/pi-extension-template
+npm install -g @tryinget/pi-extensions-template_copier
 new-pi-extension-repo <repo-name> [command-name] [--target-dir <path>] \
   [--intake-profile guided|minimal] [--interview-tool-version 0.5.1]
 ```
@@ -48,7 +48,7 @@ NPM_TOKEN=... npm-bootstrap-publish --project ~/programming/pi-extensions/pi-eva
 You can run it without global install too:
 
 ```bash
-npm exec --yes --package @tryinget/pi-extension-template -- \
+npm exec --yes --package @tryinget/pi-extensions-template_copier -- \
   npm-bootstrap-publish --project ~/programming/pi-extensions/pi-evalset-lab --op op://dev/npm-publish/token
 ```
 
@@ -78,7 +78,7 @@ npmbp ~/programming/pi-extensions/pi-evalset-lab --op op://dev/npm-publish/token
 If you want the old command shape, use:
 
 ```bash
-bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+bash ~/programming/pi-extensions/pi-extensions-template_copier/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
 The wrapper is intentionally thin: argument validation + `copier copy` invocation.
@@ -88,7 +88,7 @@ For reproducible generation, pin a tag/commit explicitly:
 
 ```bash
 PI_TEMPLATE_REF=v0.1.0 \
-  bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+  bash ~/programming/pi-extensions/pi-extensions-template_copier/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
 Choose intake profile + pinned interview tool version at generation time:
@@ -96,7 +96,7 @@ Choose intake profile + pinned interview tool version at generation time:
 ```bash
 PI_INTAKE_PROFILE=guided \
 PI_INTERVIEW_TOOL_VERSION=0.5.1 \
-  bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+  bash ~/programming/pi-extensions/pi-extensions-template_copier/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
 The wrapper refuses to generate from a dirty template repo by default.
@@ -104,7 +104,7 @@ Override only for local experiments:
 
 ```bash
 ALLOW_DIRTY_TEMPLATE=1 \
-  bash ~/programming/pi-extensions/template/new-pi-extension-repo.sh <repo-name> [command-name]
+  bash ~/programming/pi-extensions/pi-extensions-template_copier/new-pi-extension-repo.sh <repo-name> [command-name]
 ```
 
 ## What is templated

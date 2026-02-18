@@ -1,7 +1,7 @@
 # Next session prompt — Path 2/3 consolidation + publish prep
 
 You are working in:
-`~/programming/pi-extensions/template`
+`~/programming/pi-extensions/pi-extensions-template_copier`
 
 ## What is already done (do not redo)
 
@@ -73,7 +73,7 @@ Publish is still blocked by auth (`op signin` / `NPM_TOKEN` missing).
 ## Fast start commands
 
 ```bash
-cd ~/programming/pi-extensions/template
+cd ~/programming/pi-extensions/pi-extensions-template_copier
 git status --short
 npm run check:full
 npm run release:check:quick
