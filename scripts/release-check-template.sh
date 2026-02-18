@@ -194,7 +194,7 @@ else
 
   echo "== local CLI generation smoke"
   LOCAL_SMOKE_DIR="$TMP_DIR/local-cli-smoke"
-  node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR"
+  node ./bin/new-pi-extension-repo.mjs local-cli-smoke --target-dir "$LOCAL_SMOKE_DIR" --project-context "local cli smoke context"
   install_generated_repo_deps "$LOCAL_SMOKE_DIR"
   (
     cd "$LOCAL_SMOKE_DIR"
@@ -204,7 +204,7 @@ else
   if [[ "${SKIP_PACKAGED_CLI_SMOKE:-0}" != "1" ]]; then
     echo "== packaged CLI generation smoke (npm exec --package <tarball>)"
     PACKAGED_SMOKE_DIR="$TMP_DIR/packaged-cli-smoke"
-    npm exec --yes --package "$TARBALL_PATH" -- new-pi-extension-repo packaged-cli-smoke --target-dir "$PACKAGED_SMOKE_DIR"
+    npm exec --yes --package "$TARBALL_PATH" -- new-pi-extension-repo packaged-cli-smoke --target-dir "$PACKAGED_SMOKE_DIR" --project-context "packaged cli smoke context"
     install_generated_repo_deps "$PACKAGED_SMOKE_DIR"
     (
       cd "$PACKAGED_SMOKE_DIR"

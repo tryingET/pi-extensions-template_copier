@@ -1,7 +1,7 @@
 {
   "profile": "{{ intake_profile }}",
   "title": "Initialize organization and project documents",
-  "description": "{% if intake_profile == 'guided' %}Review recommended options first, then adjust as needed.{% else %}Answer in concise English.{% endif %} Keep organization-level statements distinct from project-level statements.",
+  "description": "{% if intake_profile == 'guided' %}Review recommended options first, then adjust as needed.{% else %}Answer in concise English.{% endif %} Keep organization-level statements distinct from project-level statements. Runtime intake adds repo context from README/package/folder automatically.",
   "questions": [
 {%- if intake_profile == "minimal" %}
     {
