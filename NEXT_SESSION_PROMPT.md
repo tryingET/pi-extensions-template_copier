@@ -1,117 +1,92 @@
-# Next session prompt — finalize Biome-first template hardening (HTN slice O1→O4)
+# Next session prompt — Path 2/3 consolidation + publish prep
 
-You are working in the **template source repo**:
+You are working in:
 `~/programming/pi-extensions/template`
 
-This is **not** a generated repo. Keep all template changes under:
-- `copier-template/**`
-- `copier.yml`
-- root test/guardrail scripts
+## What is already done (do not redo)
 
-Do **not** run `copier copy ... .` in this repo root.
+### Path 3 (separate extension repo)
+- Dedicated extension repo created:
+  - `~/programming/pi-extensions/system4d-intake-workflow`
+- `NEXT_SESSION_PROMPT.md` there has a concrete MVP plan for System4D intake workflow commands/contracts/tests.
+- Repo currently passes baseline check:
+  - `cd ~/programming/pi-extensions/system4d-intake-workflow && npm run check`
 
----
+### Path 2 (template simplification controls)
+Implemented in template source:
+- `copier.yml` now has vars:
+  - `intake_profile`: `guided|minimal` (default `guided`)
+  - `interview_tool_version`: pinned semver (default `0.5.1`)
+- CLI wrapper + npm bin support these knobs:
+  - `--intake-profile`
+  - `--interview-tool-version`
+  - env fallbacks: `PI_INTAKE_PROFILE`, `PI_INTERVIEW_TOOL_VERSION`
+- generated `package.json` now stores:
+  - `config.intakeProfile`
+  - `config.interviewToolVersion`
+- intake questions are now profile-driven via:
+  - `copier-template/docs/org/project-docs-intake.questions.json.jinja`
+- interview install helper uses pinned version from repo config.
+- structure validation updated for profile-aware checks.
 
-## Mission
+### System planning repo (non-template)
+- Created:
+  - `~/ai-society/softwareco/owned/nexus-workflow-platform`
+- Contains Path 5 system vision + migration roadmap docs.
 
-Complete the first HTN execution slice for Biome hardening (solo builder + AI-heavy workflow), then verify end-to-end.
+### Cleanup
+- Wrong repo was deleted:
+  - `~/ai-society/softwareco/owned/pi-system4d-intake-workflow`
 
-### HTN slice to execute now
+## Important current state
 
-- **O1** editor enforcement
-- **O2** tighten high-signal Biome rules
-- **O3** suppression governance policy
-- **O4** path override strategy (schema-valid, low-noise)
+Template repo working tree is intentionally dirty with multiple edits including:
+- release tooling + publish helper (`bin/npm-bootstrap-publish.mjs`)
+- interview/tooling changes
+- copier var/profile changes
 
-Keep WIP = 1 (finish each operator + validate before next).
+Publish is still blocked by auth (`op signin` / `NPM_TOKEN` missing).
 
----
+## High-priority next actions
 
-## Current known state (already in working tree)
+1. **Scope + stage commits cleanly in template repo**
+   - Group A: release/publish helper work
+   - Group B: interview/profile/pinning changes
+   - Avoid accidental unrelated files unless intentional.
 
-Biome baseline migration is mostly done already:
-- `quality-gate.sh` switched from ESLint detection to Biome
-- `package.json.jinja` has pinned `@biomejs/biome` and `engines.node >=22`
-- scaffold docs updated for `npm run fix` + Biome lane
-- contract and validation scripts updated
-- root `docs/release-feature-parity.md` was intentionally removed
+2. **Sync Path 3 repo with latest template knobs**
+   - `system4d-intake-workflow` was generated before newest profile/version wiring.
+   - Apply one of:
+     - regenerate/recopy from updated template, or
+     - manual patch to include `config.intakeProfile` + `config.interviewToolVersion` + pinned install helper behavior.
 
-There are local unstaged changes. **Continue from current tree**; do not reset.
+3. **Then execute Path 3 MVP in its repo**
+   - Follow:
+     - `~/programming/pi-extensions/system4d-intake-workflow/NEXT_SESSION_PROMPT.md`
 
----
+4. **Release readiness**
+   - In template repo run:
+     - `npm run check:full`
+     - `npm run release:check:quick`
+   - If green and commit(s) pushed, publish once auth is available.
 
-## Required tasks
-
-### 1) O1 — Editor enforcement (template baseline)
-
-Add a template editor settings file:
-- `copier-template/.vscode/settings.json`
-
-Goal:
-- Biome as default formatter for JS/TS/JSON(+JSONC)
-- format on save enabled
-- Biome code actions on save enabled where appropriate
-
-Then update invariants/contract/docs if needed so this new baseline file is expected (only where appropriate).
-
-### 2) O2 — Tighten high-signal rules in `biome.jsonc`
-
-In `copier-template/biome.jsonc`:
-- keep `recommended: true`
-- explicitly set high-signal rules for AI-generated code quality, at minimum:
-  - `suspicious.noExplicitAny`
-  - `style.useTemplate`
-
-Pick severities intentionally (prefer `error` unless noisy).
-
-### 3) O3 — Suppression governance policy
-
-Update contributor docs so suppressions are controlled:
-- every `biome-ignore` requires a short rationale
-- include issue/todo reference pattern when not immediately removable
-
-Touch at least:
-- `copier-template/docs/dev/CONTRIBUTING.md`
-- `copier-template/CONTRIBUTING.md` (or link to canonical policy)
-
-### 4) O4 — Path overrides strategy
-
-Implement Biome path handling with schema-valid config:
-- reduce false positives/noise for generated/artifact paths
-- avoid broad blind ignores
-- prefer precise overrides or includes, consistent with template intent
-
-Important: verify with current pinned Biome schema (no unknown keys).
-
----
-
-## Keep these outcomes intact
-
-- `docs/release-feature-parity.md` remains deleted
-- no stale references to that doc in root README
-- template still passes guardrails + smoke + contract + idempotency
-
----
-
-## Validation loop (must run and report)
-
-Run in this repo:
+## Fast start commands
 
 ```bash
+cd ~/programming/pi-extensions/template
+git status --short
 npm run check:full
+npm run release:check:quick
+
+cd ~/programming/pi-extensions/system4d-intake-workflow
+npm run check
 ```
 
-If anything fails, fix and rerun until green.
+## Decision log (locked)
 
----
-
-## Deliverable format
-
-Return a concise report with:
-1. files changed/added/removed
-2. exact Biome rule decisions + rationale
-3. suppression policy text added (short quote)
-4. validation command output summary (pass/fail)
-5. follow-up suggestions (max 3)
-
-If blocked by ambiguity, ask **one** focused question only.
+- Keep `pi-interview` optional, not package dependency.
+- Installation must be pinned by version.
+- Template supports two intake modes:
+  - `guided` (decision cards + recommendations)
+  - `minimal` (text-first)
+- Platform/monorepo vision lives in softwareco planning repo, not in the extension template.
