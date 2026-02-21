@@ -82,7 +82,12 @@ run_tests() {
 }
 
 run_structure_validation() {
-  bash "$ROOT_DIR/scripts/validate-structure.sh"
+  local args=()
+  # For pre-commit, only validate staged files (not untracked)
+  if [[ "$STAGE" == "pre-commit" ]]; then
+    args+=("--staged-only")
+  fi
+  bash "$ROOT_DIR/scripts/validate-structure.sh" "${args[@]}"
 }
 
 run_pre_commit() {
