@@ -4,6 +4,34 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# Parse arguments
+STAGED_ONLY=false
+for arg in "$@"; do
+  if [[ "$arg" == "--staged-only" ]]; then
+    STAGED_ONLY=true
+  fi
+done
+
+# Get list of staged files if --staged-only
+if [[ "$STAGED_ONLY" == "true" ]]; then
+  mapfile -t STAGED_FILES < <(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || echo "")
+fi
+
+# Helper to check if a file should be validated
+should_check_file() {
+  local file="$1"
+  if [[ "$STAGED_ONLY" != "true" ]]; then
+    return 0  # Check all files
+  fi
+  # Only check if file is staged
+  for staged in "${STAGED_FILES[@]}"; do
+    if [[ "./$staged" == "$file" || "$staged" == "${file#./}" ]]; then
+      return 0
+    fi
+  done
+  return 1  # Skip this file
+}
+
 required_files=(
   "README.md"
   "LICENSE"
@@ -42,7 +70,7 @@ required_files=(
   "docs/project/skills.md"
   "docs/project/strategic_goals.md"
   "docs/project/tactical_goals.md"
-  "docs/dev/next_steps.md"
+  "NEXT_SESSION_PROMPT.md"
   "docs/dev/status.md"
   "docs/tech-stack.local.md"
   "docs/dev/CONTRIBUTING.md"
@@ -122,6 +150,29 @@ for executable in "${required_executables[@]}"; do
     ((errors+=1))
   fi
 done
+
+max_lines=500
+while IFS= read -r -d '' source_file; do
+  normalized="${source_file#./}"
+  # Skip lockfiles and hidden directories (except .github which we want to check)
+  if [[ "$normalized" == "package-lock.json" ]]; then
+    continue
+  fi
+  # Skip files in hidden directories like .obsidian, .git, etc.
+  if [[ "$normalized" =~ ^\.[^/]+/ ]] && [[ ! "$normalized" =~ ^\.github/ ]]; then
+    continue
+  fi
+  # Skip if --staged-only and file is not staged
+  if ! should_check_file "$source_file"; then
+    continue
+  fi
+
+  line_count=$(wc -l < "$source_file")
+  if [[ "$line_count" -gt "$max_lines" ]]; then
+    echo "File exceeds ${max_lines}-line limit (refactor required): ${normalized} (${line_count} lines)" >&2
+    ((errors+=1))
+  fi
+done < <(find . -type f ! -path "./.git/*" ! -path "./node_modules/*" -print0)
 
 plan_count=$(find "docs/dev/plans" -maxdepth 1 -type f -name "*.md" | wc -l | tr -d ' ')
 if [[ "$plan_count" -lt 1 ]]; then
@@ -586,6 +637,16 @@ NODE
 fi
 
 while IFS= read -r -d '' markdown_file; do
+  normalized="${markdown_file#./}"
+  # Skip files in hidden directories like .obsidian, etc. (except .github and .pi)
+  if [[ "$normalized" =~ ^\.[^/]+/ ]] && [[ ! "$normalized" =~ ^(\.github|\.pi)/ ]]; then
+    continue
+  fi
+  # Skip if --staged-only and file is not staged
+  if ! should_check_file "$markdown_file"; then
+    continue
+  fi
+
   if [[ "$(head -n 1 "$markdown_file")" != "---" ]]; then
     echo "Missing YAML frontmatter start in: $markdown_file" >&2
     ((errors+=1))
