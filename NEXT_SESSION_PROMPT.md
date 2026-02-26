@@ -15,8 +15,8 @@ Current focus: **migrate existing repos onto the template** so they can receive 
 | Repo | Status | Blocker |
 |------|--------|---------|
 | `pi-extensions-template_copier` | N/A | This is the template source |
-| `pi-autonomous-session-control` | NEEDS FIX | Has `.copier-answers.yml`, but 37 pre-existing test failures block update |
-| `pi-little-helpers` | NEEDS MIGRATION | No git repo, no `.copier-answers.yml` |
+| `pi-autonomous-session-control` | NEEDS FIX | Has `.copier-answers.yml`, but repo is dirty + pre-existing test failures block update |
+| `pi-little-helpers` | ✅ DONE | Migrated 2026-02-26 |
 | `pi-user-prompt-compaction` | NEEDS MIGRATION | Git repo, no `.copier-answers.yml` |
 
 ## Migration tasks
@@ -37,29 +37,15 @@ Tasks:
 - [ ] Run `npm run check` until green
 - [ ] Run update: `just update HEAD` (from template repo)
 
-### 2. Migrate `pi-little-helpers`
+### 2. Migrate `pi-little-helpers` ✅ DONE
 
-Currently has extensions but no git repo or template metadata.
-
-```bash
-cd ~/programming/pi-extensions/pi-little-helpers
-ls -la extensions/
-```
-
-Tasks:
-- [ ] List existing extensions and their dependencies
-- [ ] Decide: re-generate from template OR retroactively add template metadata
-- [ ] If re-generating:
-  - [ ] Create temp backup of existing extensions
-  - [ ] Run `just new pi-little-helpers little-helpers --target-dir /tmp/pi-little-helpers-new`
-  - [ ] Copy extensions back
-  - [ ] Move into place
-- [ ] If retroactive:
-  - [ ] `git init`
-  - [ ] Create `.copier-answers.yml` manually with correct `repo_name`, `command_name`, `github_maintainer`
-  - [ ] Run `copier recopy --trust --defaults --vcs-ref HEAD ~/programming/pi-extensions/pi-extensions-template_copier`
-- [ ] Run `npm run check`
-- [ ] Commit
+Completed 2026-02-26 via retroactive migration:
+- `git init`
+- Created `.copier-answers.yml` with correct metadata
+- Applied template with `copier copy --trust --defaults --force`
+- Refactored `package-update-notify.ts` (566→194 lines) by extracting `package-utils.ts`
+- Fixed lint issues in existing extensions
+- All checks pass: `npm run check`
 
 ### 3. Migrate `pi-user-prompt-compaction`
 
