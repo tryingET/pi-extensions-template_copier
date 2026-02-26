@@ -173,11 +173,17 @@ else
   TEST_AGENT_DIR="$(mktemp -d /tmp/pi-extension-release-check-XXXXXX)"
 
   cp "$HOME/.pi/agent/auth.json" "$TEST_AGENT_DIR/auth.json"
-  cat > "$TEST_AGENT_DIR/settings.json" <<'JSON'
+
+  # Allow override via environment variables for different provider configurations
+  PI_TEST_DEFAULT_PROVIDER="${PI_TEST_DEFAULT_PROVIDER:-openai}"
+  PI_TEST_DEFAULT_MODEL="${PI_TEST_DEFAULT_MODEL:-gpt-4o}"
+  PI_TEST_ENABLED_MODELS="${PI_TEST_ENABLED_MODELS:-[\"openai/gpt-4*\"]}"
+
+  cat > "$TEST_AGENT_DIR/settings.json" <<JSON
 {
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.3-codex",
-  "enabledModels": ["openai-codex/gpt-5*-codex"],
+  "defaultProvider": "${PI_TEST_DEFAULT_PROVIDER}",
+  "defaultModel": "${PI_TEST_DEFAULT_MODEL}",
+  "enabledModels": ${PI_TEST_ENABLED_MODELS},
   "extensions": []
 }
 JSON
