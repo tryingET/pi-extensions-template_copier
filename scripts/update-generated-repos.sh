@@ -194,7 +194,7 @@ process_repo() {
   if ! (cd "$repo_path" && copier update --trust --defaults --vcs-ref "$REF" >"$tmp_log" 2>&1); then
     method="recopy"
     echo "   update failed, trying recopy..."
-    if ! (cd "$repo_path" && copier recopy --trust --defaults --vcs-ref "$REF" >>"$tmp_log" 2>&1); then
+    if ! (cd "$repo_path" && copier recopy --trust --defaults --overwrite --vcs-ref "$REF" >>"$tmp_log" 2>&1); then
       local tail_msg
       tail_msg="$(tail -n 10 "$tmp_log" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
       rm -f "$tmp_log"
