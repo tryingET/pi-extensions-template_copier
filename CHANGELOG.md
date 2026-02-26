@@ -2,7 +2,27 @@
 
 ## [Unreleased]
 
-- _No changes yet._
+### Features
+* **tooling:** add justfile for template maintenance tasks
+* **tooling:** add update-generated-repos.sh for batch template sync
+* **template:** migrate interview tool from pi-interview to pi-askuserquestion
+* **template:** make release-check.sh test settings configurable
+* **template:** convert CODEOWNERS to jinja template
+* **template:** extract validation to mjs and add sync-to-live symlink mode
+* add pinned dependency update checker
+
+### Changes
+* **template:** remove startup intake workflow from scaffold (simplified)
+* **cli:** remove intake options from generator wrappers
+* **docs:** consolidate next_steps into NEXT_SESSION_PROMPT
+
+### Fixes
+* **scripts:** pre-commit only validates staged files
+* **update:** add --overwrite to recopy for conflict resolution
+
+### Maintenance
+* **validation:** remove unused docs scaffolding (skills, goals, status, plans)
+* **validation:** simplify required structure for generated repos
 
 ## [0.3.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.2.1...v0.3.0) (2026-02-18)
 
