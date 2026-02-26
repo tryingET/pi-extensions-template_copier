@@ -17,26 +17,8 @@ github_maintainer:
   default: "tryingET"
   help: "GitHub handle to seed in .github/VOUCHED.td"
 
-intake_profile:
-  type: str
-  choices:
-    - guided
-    - minimal
-  default: guided
-  help: "Startup intake question profile (guided includes decision cards + recommendations)"
-
-interview_tool_source:
-  type: str
-  default: "git:github.com/ghoseb/pi-askuserquestion@e6e8e20b4fa195b11d6f8007d74530374271c254"
-  help: "Pinned interview tool source (pi-askuserquestion) — pinned to verified commit"
-
-project_context:
-  type: str
-  default: ""
-  help: "Optional startup intake context seed (short summary of project/domain intent)"
-
 _tasks:
-  - "chmod +x scripts/sync-to-live.sh scripts/install-hooks.sh scripts/init-project-docs.sh scripts/build-intake-questions-runtime.mjs scripts/docs-list.sh scripts/release-check.sh scripts/validate-structure.sh scripts/quality-gate.sh .githooks/pre-commit .githooks/pre-push"
+  - "chmod +x scripts/sync-to-live.sh scripts/install-hooks.sh scripts/docs-list.sh scripts/release-check.sh scripts/validate-structure.sh scripts/quality-gate.sh .githooks/pre-commit .githooks/pre-push"
   - "git init -q"
   - "bash ./scripts/install-hooks.sh"
 
@@ -48,12 +30,6 @@ _message_after_copy: |
     npm install
     npm run docs:list
     npm run check
-
-  Startup interview flow:
-    - Open the repo in pi
-    - Send your startup intent as first non-command message
-    - Router proposes: /init-project-docs "<intent>"
-    - Runtime questions adapt from README/package/folder{% if project_context %} + project_context seed{% endif %}
 
   Copier policy:
     - Commit .copier-answers.yml

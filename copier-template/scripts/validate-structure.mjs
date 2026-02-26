@@ -102,90 +102,6 @@ function validateBiomeIgnoreGovernance(rootDir) {
   walk(rootDir);
 }
 
-function validateInterviewQuestions() {
-  const qPath = "docs/org/project-docs-intake.questions.json";
-  const q = readJsonSafe(qPath);
-
-  if (!q) {
-    fail(`Failed to parse interview questions file: ${qPath}`);
-    return;
-  }
-
-  if (typeof q.title !== "string" || q.title.trim().length === 0) {
-    fail(`Interview questions file must include a non-empty title: ${qPath}`);
-  }
-
-  if (typeof q.description !== "string" || q.description.trim().length === 0) {
-    fail(`Interview questions file must include a non-empty description: ${qPath}`);
-  }
-
-  if (!Array.isArray(q.questions) || q.questions.length === 0) {
-    fail(`Interview questions file must include a non-empty questions array: ${qPath}`);
-  }
-
-  const intakeProfile = typeof q.profile === "string" ? q.profile : "guided";
-  if (!["guided", "minimal"].includes(intakeProfile)) {
-    fail(`Interview questions profile must be 'guided' or 'minimal': ${qPath}`);
-  }
-
-  const questionIds = new Set();
-  let decisionQuestionCount = 0;
-  let recommendedQuestionCount = 0;
-
-  for (const [index, entry] of q.questions.entries()) {
-    if (!entry || typeof entry !== "object") {
-      fail(`Interview question at index ${index} must be an object: ${qPath}`);
-      continue;
-    }
-
-    const id = entry.id;
-    const type = entry.type;
-    const questionText = entry.question;
-
-    if (typeof id !== "string" || id.trim().length === 0) {
-      fail(`Interview question at index ${index} is missing a non-empty id: ${qPath}`);
-      continue;
-    }
-
-    if (questionIds.has(id)) {
-      fail(`Interview questions must use unique ids (duplicate: ${id}): ${qPath}`);
-      continue;
-    }
-    questionIds.add(id);
-
-    if (typeof type !== "string" || type.trim().length === 0) {
-      fail(`Interview question '${id}' is missing a non-empty type: ${qPath}`);
-    }
-
-    if (typeof questionText !== "string" || questionText.trim().length === 0) {
-      fail(`Interview question '${id}' is missing a non-empty question field: ${qPath}`);
-    }
-
-    if (type === "single" || type === "multi") {
-      decisionQuestionCount += 1;
-      if (!Array.isArray(entry.options) || entry.options.length === 0) {
-        fail(`Interview question '${id}' (${type}) must include non-empty options: ${qPath}`);
-      }
-    }
-
-    if (entry.recommended !== undefined) {
-      recommendedQuestionCount += 1;
-    }
-  }
-
-  if (intakeProfile === "guided") {
-    if (decisionQuestionCount < 1) {
-      fail(
-        `Guided interview profile must include at least one decision question (single/multi): ${qPath}`,
-      );
-    }
-
-    if (recommendedQuestionCount < 1) {
-      fail(`Guided interview profile must include at least one prefilled recommendation: ${qPath}`);
-    }
-  }
-}
-
 function validatePackageJson() {
   const p = readJsonSafe("package.json");
   if (!p) {
@@ -263,36 +179,6 @@ function validatePackageJson() {
 
   if (p.engines?.node !== ">=22") {
     fail("package.json engines.node must be '>=22'");
-  }
-
-  const intakeProfile = p.config?.intakeProfile;
-  if (intakeProfile !== "guided" && intakeProfile !== "minimal") {
-    fail("package.json config.intakeProfile must be 'guided' or 'minimal'");
-  }
-
-  const interviewToolSource = p.config?.interviewToolSource;
-  if (typeof interviewToolSource !== "string" || interviewToolSource.trim().length === 0) {
-    fail(
-      "package.json config.interviewToolSource must be a non-empty string (e.g. git:github.com/ghoseb/pi-askuserquestion)",
-    );
-  }
-
-  const intakeContextSeed = p.config?.intakeContextSeed;
-  if (typeof intakeContextSeed !== "string") {
-    fail("package.json config.intakeContextSeed must be a string");
-  }
-
-  // Cross-validate intake profile with questions file
-  const qPath = "docs/org/project-docs-intake.questions.json";
-  const q = readJsonSafe(qPath);
-  if (q) {
-    const qProfileRaw = q.profile;
-    const qProfile = typeof qProfileRaw === "string" ? qProfileRaw : "guided";
-    if (qProfile !== intakeProfile) {
-      fail(
-        "package.json config.intakeProfile must match docs/org/project-docs-intake.questions.json profile",
-      );
-    }
   }
 
   const biomeVersion = p.devDependencies?.["@biomejs/biome"];
@@ -390,7 +276,6 @@ function validateStackLane() {
 function main() {
   const cwd = process.cwd();
 
-  validateInterviewQuestions();
   validatePackageJson();
   validateReleasePlease();
   validateStackLane();

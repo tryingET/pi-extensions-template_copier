@@ -3,4 +3,3 @@ dist/
 *.log
 .DS_Store
 *.tgz
-docs/org/project-docs-intake.runtime.questions.json
