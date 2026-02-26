@@ -5,7 +5,7 @@
 ### Features
 * **tooling:** add justfile for template maintenance tasks
 * **tooling:** add update-generated-repos.sh for batch template sync
-* **template:** migrate interview tool from pi-interview to pi-askuserquestion
+* **template:** update interview tool config (later removed)
 * **template:** make release-check.sh test settings configurable
 * **template:** convert CODEOWNERS to jinja template
 * **template:** extract validation to mjs and add sync-to-live symlink mode
