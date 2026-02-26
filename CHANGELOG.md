@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.3.0...v0.4.0) (2026-02-26)
+
+
+### Features
+
+* add pinned dependency update checker ([848dd91](https://github.com/tryingET/pi-extensions-template_copier/commit/848dd912aded2b555cd933d5c544e68b0e0e869b))
+* **template:** convert CODEOWNERS to jinja template ([945efea](https://github.com/tryingET/pi-extensions-template_copier/commit/945efea9e5044995bb67a6befd96ef2366f7a6b9))
+* **template:** make release-check.sh test settings configurable ([7c36d08](https://github.com/tryingET/pi-extensions-template_copier/commit/7c36d082ff066c00d0f3a52ab63e69511820fd3c))
+* **template:** migrate interview tool from pi-interview to pi-askuserquestion ([d7606f7](https://github.com/tryingET/pi-extensions-template_copier/commit/d7606f706b79d4e17c27cfa3d6a2a03269141408))
+* **tooling:** add justfile for template maintenance tasks ([7128380](https://github.com/tryingET/pi-extensions-template_copier/commit/7128380734d5160405bfa6ec179de9fa9496abac))
+* **tooling:** add update-generated-repos.sh for batch template sync ([af64bf8](https://github.com/tryingET/pi-extensions-template_copier/commit/af64bf829ed8c1b84dca8b159507862f79a1a0fa))
+
+
+### Bug Fixes
+
+* **scripts:** pre-commit only validates staged files ([f1f6d98](https://github.com/tryingET/pi-extensions-template_copier/commit/f1f6d98c315176450dee0c1c63ffc8942752f350))
+* **update:** add --overwrite to recopy for conflict resolution ([e51bdba](https://github.com/tryingET/pi-extensions-template_copier/commit/e51bdba1eaf4b2aff134bcb9e7815adb35335dc8))
+
 ## [Unreleased]
 
 ### Features

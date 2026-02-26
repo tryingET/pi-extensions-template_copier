@@ -1,6 +1,6 @@
 {
   "name": "@tryinget/pi-extensions-template_copier",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Copier template + CLI for bootstrapping production-ready pi extension repositories",
   "type": "module",
   "license": "MIT",
