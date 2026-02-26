@@ -25,10 +25,10 @@ intake_profile:
   default: guided
   help: "Startup intake question profile (guided includes decision cards + recommendations)"
 
-interview_tool_version:
+interview_tool_source:
   type: str
-  default: "0.5.1"
-  help: "Pinned pi-interview npm version for optional install helper"
+  default: "git:github.com/ghoseb/pi-askuserquestion@e6e8e20b4fa195b11d6f8007d74530374271c254"
+  help: "Pinned interview tool source (pi-askuserquestion) — pinned to verified commit"
 
 project_context:
   type: str

@@ -62,36 +62,25 @@ process.stdout.write(typeof val === "string" && val.trim() ? val : fallback);
 }
 
 INTAKE_PROFILE="$(read_pkg_config_string intakeProfile guided)"
-INTERVIEW_TOOL_VERSION="$(read_pkg_config_string interviewToolVersion 0.5.1)"
+INTERVIEW_TOOL_SOURCE="$(read_pkg_config_string interviewToolSource "git:github.com/ghoseb/pi-askuserquestion")"
 INTAKE_CONTEXT_SEED="$(read_pkg_config_string intakeContextSeed "")"
-INTERVIEW_PACKAGE_SPEC="pi-interview@${INTERVIEW_TOOL_VERSION}"
 
 install_interview_tool() {
   local installed=false
 
   if command -v pi >/dev/null 2>&1; then
-    echo "Attempting interview tool install via: pi install npm:${INTERVIEW_PACKAGE_SPEC}"
-    if pi install "npm:${INTERVIEW_PACKAGE_SPEC}"; then
+    echo "Attempting interview tool install via: pi install ${INTERVIEW_TOOL_SOURCE}"
+    if pi install "$INTERVIEW_TOOL_SOURCE"; then
       installed=true
-      echo "Installed ${INTERVIEW_PACKAGE_SPEC} via pi package install. Restart pi to load it."
+      echo "Installed ${INTERVIEW_TOOL_SOURCE} via pi package install. Restart pi to load it."
     else
-      echo "pi install npm:${INTERVIEW_PACKAGE_SPEC} failed; trying npm exec fallback." >&2
-    fi
-  fi
-
-  if [[ "$installed" != "true" ]] && command -v npm >/dev/null 2>&1; then
-    echo "Attempting interview tool install via: npm exec --yes --package ${INTERVIEW_PACKAGE_SPEC} -- pi-interview"
-    if npm exec --yes --package "$INTERVIEW_PACKAGE_SPEC" -- pi-interview; then
-      installed=true
-      echo "Installed ${INTERVIEW_PACKAGE_SPEC} via npm exec helper. Restart pi to load it."
-    else
-      echo "npm exec install helper failed." >&2
+      echo "pi install ${INTERVIEW_TOOL_SOURCE} failed." >&2
     fi
   fi
 
   if [[ "$installed" != "true" ]]; then
     echo "Could not auto-install interview tooling." >&2
-    echo "Manual fallback: run 'pi install npm:${INTERVIEW_PACKAGE_SPEC}' and restart pi." >&2
+    echo "Manual fallback: run 'pi install ${INTERVIEW_TOOL_SOURCE}' and restart pi." >&2
     echo "Prompt fallback still works: /init-project-docs can collect answers in plain chat when interview is unavailable." >&2
   fi
 }
@@ -105,8 +94,8 @@ echo ""
 echo "0) Optional: run npm run docs:list to review docs + read_when hints."
 echo "1) Intake profile: ${INTAKE_PROFILE}"
 echo "2) Intake context seed from package config: ${INTAKE_CONTEXT_SEED:-<none>}"
-echo "3) Ensure interview capability is available in pi (built-in interview tool OR pinned pi-interview package)."
-echo "   Install option: pi install npm:${INTERVIEW_PACKAGE_SPEC} (pi-agent/extensions API v0.35.0+; then restart pi)."
+echo "3) Ensure interview capability is available in pi (pi-askuserquestion extension)."
+echo "   Install option: pi install ${INTERVIEW_TOOL_SOURCE} (then restart pi)."
 echo "4) Open this repository in pi."
 echo "5) Send a natural-language intent as the first non-command message in a session."
 echo "6) Router will prefill: /init-project-docs \"<intent>\""
