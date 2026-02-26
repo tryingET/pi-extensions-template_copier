@@ -1,119 +1,120 @@
-# Next session prompt — Path 2 template hardening + release flow stabilization
+# Next session prompt — Template maintenance
 
 You are working in:
 `~/programming/pi-extensions/pi-extensions-template_copier`
 
 ## What is already done (do not redo)
 
-### Repo/package rename + remote setup
-- Local repo path renamed from `template` to:
-  - `~/programming/pi-extensions/pi-extensions-template_copier`
-- Compatibility symlink exists:
-  - `~/programming/pi-extensions/template -> pi-extensions-template_copier`
-- GitHub repo created and pushed:
-  - `https://github.com/tryingET/pi-extensions-template_copier`
-- npm package renamed and published at:
-  - `@tryinget/pi-extensions-template_copier@0.1.0`
+### Interview tool migration (DONE)
+- Migrated from `pi-interview@0.5.1` to `pi-askuserquestion`
+- Pinned to verified commit: `e6e8e20b4fa195b11d6f8007d74530374271c254`
+- Security review done ✅ — safe to use
+- Cloned to: `~/programming/upstream/pi-extensions/pi-askuserquestion/`
+- Updated files:
+  - `copier.yml` → `interview_tool_source`
+  - `copier-template/package.json.jinja` → `interviewToolSource`
+  - `copier-template/scripts/init-project-docs.sh` → updated install
+  - `copier-template/scripts/validate-structure.mjs` → updated validation
+  - `copier-template/README.md.jinja` → updated docs
+  - `scripts/smoke-test-template.sh` → updated test
 
-### Path 2 template behavior implemented
-- Intake profile + pinned interview version controls are in place (`guided|minimal`, pinned semver).
-- Generation defaults to local `HEAD` when using local git template checkout.
-- Generated quality gate now runs tests in `pre-push` and `ci` when `tests/*.test.*` exists.
-- CLI + shell wrapper accept profile/version controls.
+### Template validation fixes (11 bugs fixed)
+- Extracted `validate-structure.mjs` (409 lines) from `validate-structure.sh` (now 365 lines)
+- Fixed 500-line self-violation in validate-structure.sh
+- Fixed forbidden `<repo-name>` placeholder in sync-to-live.sh help text
+- Converted `.github/CODEOWNERS` to `.jinja` template with `{{ github_maintainer }}`
+- Made release-check.sh test settings configurable via env vars
+- All tests pass
 
-### Vouch + issue templates status
-- Added to **template source repo root** (`.github`):
-  - `ISSUE_TEMPLATE/{bug-report,feature-request,docs,config}.yml`
-  - `VOUCHED.td`
-  - `workflows/vouch-check-pr.yml`
-  - `workflows/vouch-manage.yml`
-- Updated vouch workflow action refs (root + copier-template) to:
-  - `e87054b83fcd2b10d2155b733a10a8aec344176a`
-- In generated repos, `VOUCHED.td` is now templated (`.jinja`) and seeded via `github_maintainer`.
-  - CLI supports `--github-maintainer`
-  - env supports `PI_GITHUB_MAINTAINER`
-  - fallback detection uses `gh api user -q .login`, then `tryingET`
-
-### Cleanup already completed
-- Removed accidental local files `Security` and `Settings`.
-- Deleted orphan release-please branch from remote.
-- Restored workflow permissions to safe defaults (`read`, no approve PR reviews).
-
-## Important current state
-
-- Template now includes startup intake context seeding and runtime question adaptation.
-- Smoke installs currently report ~20 high-severity npm vulnerabilities (mostly transitive).
-- Next session must run dependency triage with both **dep-viz** and **dep-diet** before release work.
-- Release-please permission follow-up may still be needed depending on GitHub Actions repo settings.
+### Repo/package setup
+- Local repo: `~/programming/pi-extensions/pi-extensions-template_copier`
+- GitHub: `https://github.com/tryingET/pi-extensions-template_copier`
+- npm: `@tryinget/pi-extensions-template_copier@0.3.0`
 
 ## High-priority next actions
 
-1. **Run dependency triage (mandatory) with dep-viz + dep-diet**
-   - Build a dependency graph/hotspot view with `dep-viz`.
-   - Build removable/reduction candidates with `dep-diet`.
-   - Cross-check both outputs against `npm audit --json` and identify top transitive roots.
+1. **Check for pinned dependency updates (MANDATORY before releases)**
+   ```bash
+   npm run check:pinned
+   ```
+   - Compares pinned `pi-askuserquestion` commit to upstream HEAD
+   - Returns exit 1 if updates available (useful for CI gates)
+   - Provides GitHub compare URL for security review
+   - Only update pinned SHA after reviewing changes
 
-2. **Apply dependency reduction/remediation in smallest safe slices**
-   - Prefer upgrades/removals that reduce transitive attack surface without breaking generated-repo contract.
-   - Re-run full template validation after each slice.
+2. **Update intake questions format for pi-askuserquestion (optional)**
+   - pi-askuserquestion uses a different schema:
+     ```typescript
+     {
+       questions: Array<{
+         question: string;       // Full question text
+         header: string;         // Short tab label (max 12 chars)
+         options: Array<{label: string; description?: string}>;
+         multiSelect: boolean;
+       }>
+     }
+     ```
+   - Current: `docs/org/project-docs-intake.questions.json.jinja` uses pi-interview format
+   - Options: (a) adapt format, (b) create converter, or (c) use plain chat fallback
 
-3. **Re-validate release pipeline after dependency cleanup**
+3. **Dependency triage**
+   - Run `npm audit` and address transitive vulnerabilities
+   - Run dep-viz + dep-diet if available
+
+4. **Cut next release**
    - `npm run check:full`
+   - `npm run check:pinned` (ensure no pending updates)
    - `npm run release:check:quick`
-   - Re-check `release-please` permissions/workflow status only after dependency baseline is stable.
+   - Merge release PR, confirm publish
 
-4. **Cut next release once vulnerability baseline is improved and checks are green**
-   - Merge release PR,
-   - confirm publish workflow for new tag succeeds.
+## Pinned dependency management
+
+### Current pinned versions
+| Package | Pinned SHA | Source |
+|---------|-----------|--------|
+| pi-askuserquestion | `e6e8e20b4fa195b11d6f8007d74530374271c254` | git:github.com/ghoseb/pi-askuserquestion |
+
+### Update process
+1. Run `npm run check:pinned`
+2. If updates available, review the compare URL
+3. Security review the changes
+4. Update `scripts/check-pinned-deps.sh` → `PINNED_SHA`
+5. Update `copier.yml` → `interview_tool_source` default
+6. Update `scripts/smoke-test-template.sh` → `SMOKE_INTERVIEW_TOOL_SOURCE`
+7. Re-run all tests: `npm run check:full`
 
 ## Fast start commands
 
 ```bash
 cd ~/programming/pi-extensions/pi-extensions-template_copier
 
+# Check current state
 git status --short
-git log --oneline -n 8
+bash ./scripts/template-guardrails.sh
 
-# baseline security snapshot
-npm audit --json > /tmp/pi-template-audit.json || true
+# Check for pinned dependency updates
+npm run check:pinned
 
-# dependency triage tools (use installed CLI syntax; check --help first)
-dep-viz --help
-dep-diet --help
-
-# run both tools against this repo and persist outputs (adjust flags to your installed versions)
-mkdir -p /tmp/pi-template-deps
-dep-viz . > /tmp/pi-template-deps/dep-viz.txt
-dep-diet . > /tmp/pi-template-deps/dep-diet.txt
-
-# then run the template validation loop
+# Run all validation
 npm run check:full
-npm run release:check:quick
 
-# inspect workflow state
-gh run list --repo tryingET/pi-extensions-template_copier --limit 10
+# After template changes
+bash ./scripts/smoke-test-template.sh
+bash ./scripts/generated-contract-test.sh
+bash ./scripts/idempotency-test-template.sh
+
+# Inspect pi-askuserquestion upstream
+cd ~/programming/upstream/pi-extensions/pi-askuserquestion
+git log --oneline -n 10
+git show --stat HEAD
 ```
 
-## Release-please permission fix helpers
+## Decision log
 
-```bash
-# inspect current workflow permissions
-gh api repos/tryingET/pi-extensions-template_copier/actions/permissions/workflow
-
-# if needed for release-please PR creation:
-# (use intentionally; can be reverted after release flow is stable)
-gh api -X PUT repos/tryingET/pi-extensions-template_copier/actions/permissions/workflow \
-  -f default_workflow_permissions=write \
-  -F can_approve_pull_request_reviews=true
-
-# trigger release-please manually
-gh workflow run release-please.yml --repo tryingET/pi-extensions-template_copier
-```
-
-## Decision log (locked)
-
-- Keep `pi-interview` optional (not package dependency).
-- Keep interview install pinned by version.
-- Keep template intake modes: `guided` and `minimal`.
-- Keep Path 3 implementation in its dedicated repo (`system4d-intake-workflow`), not in default template scaffold.
-- Keep root + generated vouch/issue baselines aligned.
+- Use `pi-askuserquestion` (native pi-tui integration) — DONE
+- Pin to specific commit SHA for security — DONE
+- Add `npm run check:pinned` for update detection — DONE
+- Keep intake profile modes: `guided` and `minimal`
+- Keep template intake context seeding
+- May need to adapt question format for pi-askuserquestion schema
+- Keep root + generated vouch/issue baselines aligned
