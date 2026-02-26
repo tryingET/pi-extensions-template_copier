@@ -261,6 +261,41 @@ Generated repos include `.copier-answers.yml` and should commit it.
 - After recopy, re-apply local deltas intentionally.
 - After update/recopy, run `npm run check`.
 
+### Batch update for generated repos
+
+The `scripts/update-generated-repos.sh` script updates all generated repos under a root directory:
+
+```bash
+# Preview changes (dry-run)
+bash ./scripts/update-generated-repos.sh --ref v0.3.0 --dry-run
+
+# Update all repos with pre/post commits
+bash ./scripts/update-generated-repos.sh --ref v0.3.0 --pre-commit --post-commit
+
+# Parallel processing (requires GNU parallel)
+bash ./scripts/update-generated-repos.sh --ref v0.3.0 --pre-commit --post-commit --parallel 4
+```
+
+Options:
+
+- `--ref <tag|HEAD>` — template version to apply (required)
+- `--root <dir>` — directory containing generated repos (default: `~/programming/pi-extensions`)
+- `--check-cmd <cmd>` — validation command (default: `npm run check`)
+- `--pre-commit` — commit dirty state before update
+- `--post-commit` — commit changes after successful update
+- `--dry-run` — preview without making changes
+- `--parallel <N>` — process N repos concurrently (requires GNU parallel)
+
+The script tries `copier update` first, then falls back to `copier recopy` if update fails. It stops on first failure and prints a summary table.
+
+Using `just`:
+
+```bash
+just update-dry v0.3.0      # dry-run
+just update v0.3.0          # with pre/post commits
+just update-parallel v0.3.0 4  # parallel
+```
+
 ## Template release checklist (maintainers)
 
 1. Ensure template repo is clean (`git status`).
