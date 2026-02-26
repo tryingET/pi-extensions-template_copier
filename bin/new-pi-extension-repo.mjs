@@ -11,9 +11,6 @@ const TEMPLATE_DIR = path.resolve(__dirname, "..");
 
 const NAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 const GITHUB_HANDLE_PATTERN = /^[A-Za-z0-9-]+$/;
-const INTAKE_PROFILES = new Set(["guided", "minimal"]);
-const VERSION_PATTERN = /^\d+\.\d+\.\d+([-.][0-9A-Za-z.]+)?$/;
-const PROJECT_CONTEXT_MAX_LENGTH = 4000;
 
 function usage() {
   console.error(`Usage: new-pi-extension-repo <repo-name> [command-name] [options]
@@ -21,18 +18,12 @@ function usage() {
 Options:
   --target-dir <path>              Destination directory (default: ./<repo-name>)
   --template-ref <ref>             Override copier --vcs-ref
-  --intake-profile <guided|minimal>  Intake questionnaire profile (default: guided)
-  --interview-tool-version <ver>   Pinned pi-interview npm version (default: 0.5.1)
   --github-maintainer <handle>     GitHub handle seeded in generated .github/VOUCHED.td
-  --project-context <text>         Optional context seed for startup intake (stored in package.json config)
   -h, --help                       Show this help
 
 Env:
   PI_TEMPLATE_REF=<ref>            Template ref fallback (defaults to HEAD for local git template checkouts)
-  PI_INTAKE_PROFILE=<profile>      Optional intake profile fallback
-  PI_INTERVIEW_TOOL_VERSION=<ver>  Optional interview tool version fallback
   PI_GITHUB_MAINTAINER=<handle>    Optional GitHub handle fallback for VOUCHED.td
-  PI_PROJECT_CONTEXT=<text>        Optional project context seed used by startup intake
 
 Notes:
   - Requires copier to be installed (pipx/uv/pip).
@@ -97,10 +88,7 @@ function detectGithubMaintainer(explicitArg) {
 const args = process.argv.slice(2);
 let targetDirArg;
 let templateRefArg;
-let intakeProfileArg;
-let interviewToolVersionArg;
 let githubMaintainerArg;
-let projectContextArg;
 const positional = [];
 
 for (let i = 0; i < args.length; i += 1) {
@@ -125,31 +113,10 @@ for (let i = 0; i < args.length; i += 1) {
     continue;
   }
 
-  if (arg === "--intake-profile") {
-    i += 1;
-    if (i >= args.length) fail("Missing value for --intake-profile");
-    intakeProfileArg = args[i];
-    continue;
-  }
-
-  if (arg === "--interview-tool-version") {
-    i += 1;
-    if (i >= args.length) fail("Missing value for --interview-tool-version");
-    interviewToolVersionArg = args[i];
-    continue;
-  }
-
   if (arg === "--github-maintainer") {
     i += 1;
     if (i >= args.length) fail("Missing value for --github-maintainer");
     githubMaintainerArg = args[i];
-    continue;
-  }
-
-  if (arg === "--project-context") {
-    i += 1;
-    if (i >= args.length) fail("Missing value for --project-context");
-    projectContextArg = args[i];
     continue;
   }
 
@@ -169,13 +136,7 @@ const repoName = positional[0];
 const commandName = positional[1] ?? repoName;
 const explicitTemplateRef = templateRefArg ?? process.env.PI_TEMPLATE_REF ?? "";
 const templateRef = explicitTemplateRef || (templateSourceIsGitRepo(TEMPLATE_DIR) ? "HEAD" : "");
-const intakeProfile = intakeProfileArg ?? process.env.PI_INTAKE_PROFILE ?? "guided";
-const interviewToolVersion =
-  interviewToolVersionArg ?? process.env.PI_INTERVIEW_TOOL_VERSION ?? "0.5.1";
 const githubMaintainer = detectGithubMaintainer(githubMaintainerArg);
-const projectContext = String(projectContextArg ?? process.env.PI_PROJECT_CONTEXT ?? "")
-  .replace(/\s+/g, " ")
-  .trim();
 
 if (!NAME_PATTERN.test(repoName)) {
   fail("Error: repo-name must match [a-zA-Z0-9._-]+");
@@ -185,20 +146,8 @@ if (!NAME_PATTERN.test(commandName)) {
   fail("Error: command-name must match [a-zA-Z0-9._-]+");
 }
 
-if (!INTAKE_PROFILES.has(intakeProfile)) {
-  fail("Error: --intake-profile must be one of: guided, minimal");
-}
-
-if (!VERSION_PATTERN.test(interviewToolVersion)) {
-  fail("Error: --interview-tool-version must be a pinned semver (e.g. 0.5.1)");
-}
-
 if (!GITHUB_HANDLE_PATTERN.test(githubMaintainer)) {
   fail("Error: --github-maintainer must match GitHub handle characters [A-Za-z0-9-]+");
-}
-
-if (projectContext.length > PROJECT_CONTEXT_MAX_LENGTH) {
-  fail(`Error: --project-context must be <= ${PROJECT_CONTEXT_MAX_LENGTH} characters`);
 }
 
 const targetDir = path.resolve(targetDirArg ?? path.join(process.cwd(), repoName));
@@ -225,13 +174,7 @@ const copierArgs = [
   "-d",
   `command_name=${commandName}`,
   "-d",
-  `intake_profile=${intakeProfile}`,
-  "-d",
-  `interview_tool_version=${interviewToolVersion}`,
-  "-d",
   `github_maintainer=${githubMaintainer}`,
-  "-d",
-  `project_context=${projectContext}`,
 ];
 
 if (templateRef) {
