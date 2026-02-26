@@ -19,7 +19,6 @@
     "docs/tech-stack.local.md",
     "policy/stack-lane.json",
     "scripts/release-check.sh",
-    "scripts/build-intake-questions-runtime.mjs",
     "scripts/validate-structure.sh",
     "scripts/validate-structure.mjs",
     "scripts/quality-gate.sh",

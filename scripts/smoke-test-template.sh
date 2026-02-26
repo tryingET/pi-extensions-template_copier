@@ -5,9 +5,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE_SRC="${1:-$ROOT_DIR}"
 REPO_NAME="${SMOKE_REPO_NAME:-template-smoke}"
 COMMAND_NAME="${SMOKE_COMMAND_NAME:-template-smoke}"
-INTAKE_PROFILE="${SMOKE_INTAKE_PROFILE:-guided}"
-INTERVIEW_TOOL_SOURCE="${SMOKE_INTERVIEW_TOOL_SOURCE:-git:github.com/ghoseb/pi-askuserquestion@e6e8e20b4fa195b11d6f8007d74530374271c254}"
-PROJECT_CONTEXT="${SMOKE_PROJECT_CONTEXT:-template smoke context}"
 TEMPLATE_REF="${PI_TEMPLATE_REF:-HEAD}"
 
 if ! command -v copier >/dev/null 2>&1; then
@@ -38,9 +35,6 @@ copier_args=(
   --defaults
   -d "repo_name=$REPO_NAME"
   -d "command_name=$COMMAND_NAME"
-  -d "intake_profile=$INTAKE_PROFILE"
-  -d "interview_tool_source=$INTERVIEW_TOOL_SOURCE"
-  -d "project_context=$PROJECT_CONTEXT"
 )
 
 if [[ -n "$TEMPLATE_REF" ]]; then
@@ -52,14 +46,13 @@ copier "${copier_args[@]}" "$TEMPLATE_SRC" "$DEST_DIR"
 (
   cd "$DEST_DIR"
 
-  node - "$INTAKE_PROFILE" "$INTERVIEW_TOOL_SOURCE" "$PROJECT_CONTEXT" <<'NODE'
+  # Basic structure validation
+  node - "$REPO_NAME" "$COMMAND_NAME" <<'NODE'
 const fs = require("node:fs");
 
-const expectedIntakeProfile = process.argv[2];
-const expectedInterviewToolSource = process.argv[3];
-const expectedProjectContext = process.argv[4];
+const expectedRepoName = process.argv[2];
+const expectedCommandName = process.argv[3];
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-const questions = JSON.parse(fs.readFileSync("docs/org/project-docs-intake.questions.json", "utf8"));
 const answers = fs.readFileSync(".copier-answers.yml", "utf8");
 
 const fail = (msg) => {
@@ -67,41 +60,23 @@ const fail = (msg) => {
   process.exit(1);
 };
 
-if (pkg?.config?.intakeProfile !== expectedIntakeProfile) {
-  fail(
-    `package.json config.intakeProfile mismatch: expected ${expectedIntakeProfile}, got ${pkg?.config?.intakeProfile ?? "undefined"}`,
-  );
+if (pkg.name !== expectedRepoName) {
+  fail(`package.json name mismatch: expected ${expectedRepoName}, got ${pkg.name}`);
 }
 
-if (pkg?.config?.interviewToolSource !== expectedInterviewToolSource) {
-  fail(
-    `package.json config.interviewToolSource mismatch: expected ${expectedInterviewToolSource}, got ${pkg?.config?.interviewToolSource ?? "undefined"}`,
-  );
+if (!pkg.pi?.extensions?.includes(`./extensions/${expectedCommandName}.ts`)) {
+  fail(`package.json pi.extensions missing ./extensions/${expectedCommandName}.ts`);
 }
 
-if (questions?.profile !== expectedIntakeProfile) {
-  fail(
-    `docs/org/project-docs-intake.questions.json profile mismatch: expected ${expectedIntakeProfile}, got ${questions?.profile ?? "undefined"}`,
-  );
+if (!answers.includes(`repo_name: ${expectedRepoName}`)) {
+  fail(`.copier-answers.yml missing repo_name: ${expectedRepoName}`);
 }
 
-if (!answers.includes(`intake_profile: ${expectedIntakeProfile}`)) {
-  fail(`.copier-answers.yml missing intake_profile: ${expectedIntakeProfile}`);
+if (!answers.includes(`command_name: ${expectedCommandName}`)) {
+  fail(`.copier-answers.yml missing command_name: ${expectedCommandName}`);
 }
 
-if (!answers.includes("interview_tool_source:")) {
-  fail(".copier-answers.yml missing interview_tool_source entry");
-}
-
-if (pkg?.config?.intakeContextSeed !== expectedProjectContext) {
-  fail(
-    `package.json config.intakeContextSeed mismatch: expected ${expectedProjectContext}, got ${pkg?.config?.intakeContextSeed ?? "undefined"}`,
-  );
-}
-
-if (!answers.includes("project_context:")) {
-  fail(".copier-answers.yml missing project_context entry");
-}
+console.log("Structure validation passed");
 NODE
 
   if [[ -f package-lock.json ]]; then

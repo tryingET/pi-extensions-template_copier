@@ -62,7 +62,6 @@ required_files=(
   ".release-please-config.json"
   ".release-please-manifest.json"
   "docs/org/operating_model.md"
-  "docs/org/project-docs-intake.questions.json"
   "docs/project/foundation.md"
   "docs/project/vision.md"
   "docs/project/incentives.md"
@@ -76,13 +75,9 @@ required_files=(
   "docs/dev/CONTRIBUTING.md"
   "docs/dev/EXTENSION_SOP.md"
   "policy/stack-lane.json"
-  ".pi/extensions/startup-intake-router.ts"
-  ".pi/prompts/init-project-docs.md"
   ".pi/prompts/commit.md"
   "scripts/sync-to-live.sh"
   "scripts/install-hooks.sh"
-  "scripts/init-project-docs.sh"
-  "scripts/build-intake-questions-runtime.mjs"
   "scripts/docs-list.sh"
   "scripts/release-check.sh"
   "scripts/validate-structure.sh"
@@ -92,7 +87,6 @@ required_files=(
   ".githooks/pre-push"
   "prompts/implementation-planning.md"
   "prompts/security-review.md"
-  "prompts/init-project-docs.md"
 )
 
 required_dirs=(
@@ -110,7 +104,6 @@ required_dirs=(
   "src"
   "tests"
   ".pi"
-  ".pi/extensions"
   ".pi/prompts"
   ".githooks"
   "prompts"
@@ -119,8 +112,6 @@ required_dirs=(
 required_executables=(
   "scripts/sync-to-live.sh"
   "scripts/install-hooks.sh"
-  "scripts/init-project-docs.sh"
-  "scripts/build-intake-questions-runtime.mjs"
   "scripts/docs-list.sh"
   "scripts/release-check.sh"
   "scripts/validate-structure.sh"
@@ -311,7 +302,7 @@ if ! grep -Eq "^github:[A-Za-z0-9][A-Za-z0-9-]*" ".github/VOUCHED.td"; then
   ((errors+=1))
 fi
 
-# Run Node.js validation (interview questions, package.json, release-please, stack-lane, biome-ignore)
+# Run Node.js validation (package.json, release-please, stack-lane, biome-ignore)
 if command -v node >/dev/null 2>&1; then
   if ! node "$ROOT_DIR/scripts/validate-structure.mjs"; then
     ((errors+=1))

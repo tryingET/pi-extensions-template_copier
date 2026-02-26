@@ -24,11 +24,6 @@
   "engines": {
     "node": ">=22"
   },
-  "config": {
-    "intakeProfile": "{{ intake_profile }}",
-    "interviewToolSource": "{{ interview_tool_source }}",
-    "intakeContextSeed": {{ project_context | tojson }}
-  },
   "scripts": {
     "fix": "bash ./scripts/quality-gate.sh fix",
     "lint": "bash ./scripts/quality-gate.sh lint",
