@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE_SRC="${1:-$ROOT_DIR}"
 REPO_NAME="${SMOKE_REPO_NAME:-template-smoke}"
 COMMAND_NAME="${SMOKE_COMMAND_NAME:-template-smoke}"
+NPM_ORG="${SMOKE_NPM_ORG:-tryinget}"
 TEMPLATE_REF="${PI_TEMPLATE_REF:-HEAD}"
 
 if ! command -v copier >/dev/null 2>&1; then
@@ -35,6 +36,7 @@ copier_args=(
   --defaults
   -d "repo_name=$REPO_NAME"
   -d "command_name=$COMMAND_NAME"
+  -d "npm_org=$NPM_ORG"
 )
 
 if [[ -n "$TEMPLATE_REF" ]]; then
@@ -47,11 +49,13 @@ copier "${copier_args[@]}" "$TEMPLATE_SRC" "$DEST_DIR"
   cd "$DEST_DIR"
 
   # Basic structure validation
-  node - "$REPO_NAME" "$COMMAND_NAME" <<'NODE'
+  node - "$REPO_NAME" "$COMMAND_NAME" "$NPM_ORG" <<'NODE'
 const fs = require("node:fs");
 
 const expectedRepoName = process.argv[2];
 const expectedCommandName = process.argv[3];
+const expectedNpmOrg = process.argv[4];
+const expectedPackageName = `@${expectedNpmOrg}/${expectedRepoName}`;
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const answers = fs.readFileSync(".copier-answers.yml", "utf8");
 
@@ -60,8 +64,8 @@ const fail = (msg) => {
   process.exit(1);
 };
 
-if (pkg.name !== expectedRepoName) {
-  fail(`package.json name mismatch: expected ${expectedRepoName}, got ${pkg.name}`);
+if (pkg.name !== expectedPackageName) {
+  fail(`package.json name mismatch: expected ${expectedPackageName}, got ${pkg.name}`);
 }
 
 if (!pkg.pi?.extensions?.includes(`./extensions/${expectedCommandName}.ts`)) {
@@ -74,6 +78,10 @@ if (!answers.includes(`repo_name: ${expectedRepoName}`)) {
 
 if (!answers.includes(`command_name: ${expectedCommandName}`)) {
   fail(`.copier-answers.yml missing command_name: ${expectedCommandName}`);
+}
+
+if (!answers.includes(`npm_org: ${expectedNpmOrg}`)) {
+  fail(`.copier-answers.yml missing npm_org: ${expectedNpmOrg}`);
 }
 
 console.log("Structure validation passed");
