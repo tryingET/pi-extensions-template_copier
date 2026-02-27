@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.4.0...v0.5.0) (2026-02-27)
+
+
+### Features
+
+* use scoped package names by default ([ebf583c](https://github.com/tryingET/pi-extensions-template_copier/commit/ebf583c3b399c72c5a20e7614d7e004b62a14a0a))
+
+
+### Bug Fixes
+
+* **smoke:** validate scoped package names in generated repos ([a7b4e4f](https://github.com/tryingET/pi-extensions-template_copier/commit/a7b4e4fc0fe0b49719c12968f47840e021984e07))
+
 ## [0.4.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.3.0...v0.4.0) (2026-02-26)
 
 **Note:** Intake/interview scaffolding was **removed** in this release, not migrated. Previous commits mentioning "migrate" were superseded by removal commits.
