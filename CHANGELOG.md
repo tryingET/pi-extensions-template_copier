@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.5.0...v0.5.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **ci:** add workflow_dispatch to publish.yml for manual releases ([340bbf6](https://github.com/tryingET/pi-extensions-template_copier/commit/340bbf64e743b06a3402ed434531c50e96f5cab2))
+* **release:** remove unsupported --project-context option from smoke tests ([09d195c](https://github.com/tryingET/pi-extensions-template_copier/commit/09d195c3dd59b8dfd73dcf06b3b312ede853a9be))
+
 ## [0.5.0](https://github.com/tryingET/pi-extensions-template_copier/compare/v0.4.0...v0.5.0) (2026-02-27)
 
 
