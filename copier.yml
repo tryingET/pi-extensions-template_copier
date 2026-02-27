@@ -3,9 +3,14 @@ _subdirectory: "copier-template"
 _templates_suffix: ".jinja"
 _answers_file: ".copier-answers.yml"
 
+npm_org:
+  type: str
+  default: "tryinget"
+  help: "npm org/username for scoped package name (e.g., @tryinget/pi-xyz)"
+
 repo_name:
   type: str
-  help: "Repository name (directory and package name)"
+  help: "Repository name (directory and package name, without scope)"
 
 command_name:
   type: str
