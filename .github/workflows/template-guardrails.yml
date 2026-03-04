@@ -49,7 +49,7 @@ jobs:
 
       - name: Upload smoke forensics
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-forensics-${{ github.run_id }}-${{ github.run_attempt }}
           path: .artifacts/smoke
@@ -102,7 +102,7 @@ jobs:
 
       - name: Upload generated-contract forensics
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: generated-contract-forensics-${{ matrix.id }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.FORENSICS_DIR }}
@@ -138,7 +138,7 @@ jobs:
 
       - name: Upload idempotency forensics
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: idempotency-forensics-${{ github.run_id }}-${{ github.run_attempt }}
           path: .artifacts/idempotency
